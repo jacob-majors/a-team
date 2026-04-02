@@ -86,10 +86,10 @@ create table chat_channels (
 
 -- Seed default channels
 insert into chat_channels (id, name, description, type) values
-  (gen_random_uuid()::text, 'all-team',  'Everyone',               'public'),
-  (gen_random_uuid()::text, 'coaches',   'Coaches & admins only',  'coaches'),
-  (gen_random_uuid()::text, 'riders',    'Athletes',               'public'),
-  (gen_random_uuid()::text, 'parents',   'Parent communication',   'public');
+  (gen_random_uuid()::text, 'all-team', 'Everyone',              'public'),
+  (gen_random_uuid()::text, 'coaches',  'Coaches & admins only', 'coaches'),
+  (gen_random_uuid()::text, 'riders',   'Athletes',              'public'),
+  (gen_random_uuid()::text, 'parents',  'Parent communication',  'public');
 
 -- ── Chat Messages ─────────────────────────────────────────────────
 create table chat_messages (
@@ -138,10 +138,10 @@ create table volunteer_slots (
 );
 
 create table volunteer_signups (
-  id        text primary key default gen_random_uuid()::text,
-  slot_id   text not null references volunteer_slots(id) on delete cascade,
-  user_id   text not null references users(id) on delete cascade,
-  created_at timestamptz not null default now(),
+  id          text primary key default gen_random_uuid()::text,
+  slot_id     text not null references volunteer_slots(id) on delete cascade,
+  user_id     text not null references users(id) on delete cascade,
+  created_at  timestamptz not null default now(),
   unique (slot_id, user_id)
 );
 
@@ -168,6 +168,10 @@ create table media_items (
 -- ================================================================
 -- Row Level Security (RLS)
 -- ================================================================
+-- NOTE: All server-side tRPC calls use the DATABASE_URL (postgres
+-- connection) which bypasses RLS entirely. These policies protect
+-- against direct Supabase client access only.
+-- ================================================================
 
 alter table users                   enable row level security;
 alter table events                  enable row level security;
@@ -185,51 +189,59 @@ alter table volunteer_signups       enable row level security;
 alter table media_albums            enable row level security;
 alter table media_items             enable row level security;
 
--- Helper: get current user's role
+-- ── Helper: get current Clerk user's DB row ───────────────────────
+-- auth.uid() returns the `sub` claim from the JWT.
+-- We store Clerk's user ID as clerk_id in our users table.
+-- When Clerk is configured (JWT template below), auth.uid() = clerk_id.
+
+create or replace function get_my_db_id()
+returns text
+language sql stable security definer
+as $$
+  select id from users where clerk_id = auth.uid()::text
+$$;
+
 create or replace function get_my_role()
 returns user_role
 language sql stable security definer
 as $$
-  select role from users where clerk_id = requesting_user_id()
+  select role from users where clerk_id = auth.uid()::text
 $$;
 
--- Note: requesting_user_id() must be set via a custom JWT claim in Clerk.
--- See setup guide below. For now, use service role key from server-side only.
-
--- ── users: everyone can read, only self or admin can update
+-- ── users ─────────────────────────────────────────────────────────
 create policy "users_select" on users for select using (true);
-create policy "users_insert" on users for insert with check (true); -- webhook inserts
+create policy "users_insert" on users for insert with check (true);
 create policy "users_update" on users for update using (
-  clerk_id = requesting_user_id() or get_my_role() = 'admin'
+  clerk_id = auth.uid()::text or get_my_role() = 'admin'
 );
 
--- ── events: everyone reads, coach/admin write
-create policy "events_select"  on events for select using (true);
-create policy "events_insert"  on events for insert with check (get_my_role() in ('admin','coach'));
-create policy "events_update"  on events for update using (get_my_role() in ('admin','coach'));
-create policy "events_delete"  on events for delete using (get_my_role() in ('admin','coach'));
+-- ── events ────────────────────────────────────────────────────────
+create policy "events_select" on events for select using (true);
+create policy "events_insert" on events for insert with check (get_my_role() in ('admin','coach'));
+create policy "events_update" on events for update using (get_my_role() in ('admin','coach'));
+create policy "events_delete" on events for delete using (get_my_role() in ('admin','coach'));
 
--- ── rsvps: own rows only (or admin)
+-- ── rsvps ─────────────────────────────────────────────────────────
 create policy "rsvps_select" on rsvps for select using (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-  or get_my_role() in ('admin','coach')
+  user_id = get_my_db_id() or get_my_role() in ('admin','coach')
 );
-create policy "rsvps_insert" on rsvps for insert with check (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
-create policy "rsvps_update" on rsvps for update using (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
+create policy "rsvps_insert" on rsvps for insert with check (user_id = get_my_db_id());
+create policy "rsvps_update" on rsvps for update using (user_id = get_my_db_id());
 
--- ── roster_profiles: own row, or coach/admin
+-- ── ride groups ───────────────────────────────────────────────────
+create policy "ride_groups_select" on ride_groups for select using (true);
+create policy "ride_groups_insert" on ride_groups for insert with check (get_my_role() in ('admin','coach'));
+create policy "ride_group_members_select" on ride_group_members for select using (true);
+create policy "ride_group_members_insert" on ride_group_members for insert with check (get_my_role() in ('admin','coach'));
+
+-- ── roster profiles ───────────────────────────────────────────────
 create policy "roster_select" on roster_profiles for select using (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-  or get_my_role() in ('admin','coach')
+  user_id = get_my_db_id() or get_my_role() in ('admin','coach')
 );
 create policy "roster_insert" on roster_profiles for insert with check (get_my_role() in ('admin','coach'));
 create policy "roster_update" on roster_profiles for update using (get_my_role() in ('admin','coach'));
 
--- ── chat: public channels everyone; coaches channel = coach/admin only
+-- ── chat channels ─────────────────────────────────────────────────
 create policy "chat_channels_select" on chat_channels for select using (
   type = 'public'
   or (type = 'coaches' and get_my_role() in ('admin','coach'))
@@ -237,57 +249,43 @@ create policy "chat_channels_select" on chat_channels for select using (
 );
 create policy "chat_channels_insert" on chat_channels for insert with check (get_my_role() in ('admin','coach'));
 
-create policy "chat_messages_select" on chat_messages for select using (
-  channel_id in (select id from chat_channels)
-);
-create policy "chat_messages_insert" on chat_messages for insert with check (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
+-- ── chat messages ─────────────────────────────────────────────────
+create policy "chat_messages_select" on chat_messages for select using (true);
+create policy "chat_messages_insert" on chat_messages for insert with check (user_id = get_my_db_id());
 
--- ── announcements: everyone reads, coach/admin write
-create policy "ann_select" on announcements for select using (true);
-create policy "ann_insert" on announcements for insert with check (get_my_role() in ('admin','coach'));
-create policy "ann_delete" on announcements for delete using (get_my_role() in ('admin','coach'));
+-- ── announcements ─────────────────────────────────────────────────
+create policy "ann_select"  on announcements for select using (true);
+create policy "ann_insert"  on announcements for insert with check (get_my_role() in ('admin','coach'));
+create policy "ann_delete"  on announcements for delete using (get_my_role() in ('admin','coach'));
 
-create policy "ann_dismiss_select" on announcement_dismissals for select using (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
-create policy "ann_dismiss_insert" on announcement_dismissals for insert with check (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
+create policy "ann_dismiss_select" on announcement_dismissals for select using (user_id = get_my_db_id());
+create policy "ann_dismiss_insert" on announcement_dismissals for insert with check (user_id = get_my_db_id());
 
--- ── documents: everyone reads, coach/admin write
+-- ── documents ─────────────────────────────────────────────────────
 create policy "docs_select" on documents for select using (true);
 create policy "docs_insert" on documents for insert with check (get_my_role() in ('admin','coach'));
 create policy "docs_delete" on documents for delete using (get_my_role() in ('admin','coach'));
 
--- ── volunteer slots: everyone reads, coach/admin write
-create policy "vol_slots_select" on volunteer_slots for select using (true);
-create policy "vol_slots_insert" on volunteer_slots for insert with check (get_my_role() in ('admin','coach'));
-create policy "vol_slots_delete" on volunteer_slots for delete using (get_my_role() in ('admin','coach'));
-
+-- ── volunteer slots ───────────────────────────────────────────────
+create policy "vol_slots_select"   on volunteer_slots   for select using (true);
+create policy "vol_slots_insert"   on volunteer_slots   for insert with check (get_my_role() in ('admin','coach'));
+create policy "vol_slots_delete"   on volunteer_slots   for delete using (get_my_role() in ('admin','coach'));
 create policy "vol_signups_select" on volunteer_signups for select using (true);
-create policy "vol_signups_insert" on volunteer_signups for insert with check (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
-create policy "vol_signups_delete" on volunteer_signups for delete using (
-  user_id = (select id from users where clerk_id = requesting_user_id())
-);
+create policy "vol_signups_insert" on volunteer_signups for insert with check (user_id = get_my_db_id());
+create policy "vol_signups_delete" on volunteer_signups for delete using (user_id = get_my_db_id());
 
--- ── media: everyone reads, coach/admin write albums, anyone can add photos
+-- ── media ─────────────────────────────────────────────────────────
 create policy "albums_select" on media_albums for select using (true);
 create policy "albums_insert" on media_albums for insert with check (get_my_role() in ('admin','coach'));
 create policy "albums_delete" on media_albums for delete using (get_my_role() in ('admin','coach'));
 
 create policy "media_items_select" on media_items for select using (true);
-create policy "media_items_insert" on media_items for insert with check (
-  uploaded_by = (select id from users where clerk_id = requesting_user_id())
-);
+create policy "media_items_insert" on media_items for insert with check (uploaded_by = get_my_db_id());
 create policy "media_items_delete" on media_items for delete using (
-  uploaded_by = (select id from users where clerk_id = requesting_user_id())
-  or get_my_role() in ('admin','coach')
+  uploaded_by = get_my_db_id() or get_my_role() in ('admin','coach')
 );
 
--- ── Enable Realtime for chat ──────────────────────────────────────
--- Run this separately in Supabase → Database → Replication
+-- ================================================================
+-- Enable Realtime for chat (run this after the above)
+-- ================================================================
 -- alter publication supabase_realtime add table chat_messages;
