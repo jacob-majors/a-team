@@ -8,7 +8,6 @@ export type ChannelType = 'public' | 'coaches' | 'admin'
 
 export interface User {
   id: string
-  clerkId: string
   name: string
   email: string
   role: UserRole

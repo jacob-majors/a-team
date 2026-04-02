@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { UserButton } from '@clerk/nextjs'
+import Image from 'next/image'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   CalendarDays,
   Users,
@@ -11,9 +11,10 @@ import {
   HandHeart,
   Camera,
   Megaphone,
-  Bike,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
+import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   { href: '/dashboard', label: 'Calendar', icon: CalendarDays, exact: true },
@@ -28,23 +29,25 @@ const navItems = [
 interface SidebarProps {
   userName: string
   userEmail: string
-  userImageUrl?: string
+  userAvatarUrl?: string
 }
 
-export function Sidebar({ userName, userEmail, userImageUrl }: SidebarProps) {
+export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.push('/sign-in')
+    router.refresh()
+  }
 
   return (
     <aside className="hidden md:flex md:flex-col md:w-64 bg-white border-r border-gray-200 shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500 text-white">
-          <Bike className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="font-bold text-gray-900 leading-tight">A-Team</p>
-          <p className="text-xs text-gray-500 leading-tight">Annadel Composite</p>
-        </div>
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
+        <Image src="/logo.png" alt="A-Team Annadel Composite" width={120} height={40} className="object-contain h-10 w-auto" />
       </div>
 
       {/* Nav */}
@@ -69,11 +72,17 @@ export function Sidebar({ userName, userEmail, userImageUrl }: SidebarProps) {
         })}
       </nav>
 
-      {/* User */}
+      {/* User + Sign out */}
       <div className="border-t border-gray-200 px-4 py-4">
         <div className="flex items-center gap-3">
-          {userImageUrl ? (
-            <UserButton afterSignOutUrl="/" />
+          {userAvatarUrl ? (
+            <Image
+              src={userAvatarUrl}
+              alt={userName}
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full object-cover"
+            />
           ) : (
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">
               {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -83,6 +92,13 @@ export function Sidebar({ userName, userEmail, userImageUrl }: SidebarProps) {
             <p className="truncate text-sm font-medium text-gray-900">{userName}</p>
             <p className="truncate text-xs text-gray-500">{userEmail}</p>
           </div>
+          <button
+            onClick={handleSignOut}
+            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </aside>

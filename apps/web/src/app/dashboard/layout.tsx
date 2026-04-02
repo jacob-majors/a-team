@@ -1,36 +1,39 @@
+import Image from 'next/image'
 import { Sidebar } from '@/components/layout/sidebar'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { RoleProvider, RoleSwitcher } from '@/components/layout/role-switcher'
-
-// Lazy import Clerk only when available — avoids crashing when keys are missing
-async function getClerkUser() {
-  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  if (!key?.startsWith('pk_')) return null
-  try {
-    const { currentUser } = await import('@clerk/nextjs/server')
-    return await currentUser()
-  } catch {
-    return null
-  }
-}
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await getClerkUser()
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const userName = user?.fullName
-    ?? user?.emailAddresses[0]?.emailAddress
-    ?? 'Demo User'
-  const userEmail = user?.emailAddresses[0]?.emailAddress ?? ''
+  if (!user) redirect('/sign-in')
+
+  // Fetch profile from public.users
+  const { data: profile } = await supabase
+    .from('users')
+    .select('name, email, avatar_url')
+    .eq('id', user.id)
+    .single()
+
+  const userName = profile?.name ?? user.email ?? 'User'
+  const userEmail = profile?.email ?? user.email ?? ''
+  const userAvatarUrl = profile?.avatar_url ?? user.user_metadata?.['avatar_url'] ?? undefined
 
   return (
     <RoleProvider>
       <div className="flex h-screen overflow-hidden bg-gray-50">
-        <Sidebar userName={userName} userEmail={userEmail} userImageUrl={user?.imageUrl} />
+        <Sidebar userName={userName} userEmail={userEmail} userAvatarUrl={userAvatarUrl} />
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+            <div className="flex items-center gap-3 md:hidden">
+              <Image src="/logo.png" alt="A-Team" width={90} height={30} className="object-contain h-8 w-auto" />
+            </div>
             <span className="hidden text-xs font-medium uppercase tracking-wide text-gray-400 sm:block">
-              {user ? userName : 'Preview Mode'}
+              {userName}
             </span>
             <div className="ml-auto">
               <RoleSwitcher />
