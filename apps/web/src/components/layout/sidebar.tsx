@@ -12,6 +12,7 @@ import {
   Camera,
   Megaphone,
   LogOut,
+  Database,
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/dashboard/documents', label: 'Documents', icon: FileText },
   { href: '/dashboard/volunteers', label: 'Volunteers', icon: HandHeart },
   { href: '/dashboard/photos', label: 'Photos', icon: Camera },
+  { href: '/dashboard/database', label: 'Database', icon: Database },
 ]
 
 interface SidebarProps {
