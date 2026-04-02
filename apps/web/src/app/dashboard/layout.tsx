@@ -1,33 +1,35 @@
-import { auth, currentUser } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
 import { BottomNav } from '@/components/layout/bottom-nav'
-import { TRPCProvider } from '@/lib/trpc/provider'
+import { RoleProvider, RoleSwitcher } from '@/components/layout/role-switcher'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = auth()
-  if (!userId) redirect('/sign-in')
-
-  const user = await currentUser()
-
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <TRPCProvider>
+    <RoleProvider>
       <div className="flex h-screen overflow-hidden bg-gray-50">
         {/* Desktop sidebar */}
-        <Sidebar
-          userName={user?.fullName ?? user?.emailAddresses[0]?.emailAddress ?? 'User'}
-          userAvatar={user?.imageUrl}
-          userEmail={user?.emailAddresses[0]?.emailAddress ?? ''}
-        />
+        <Sidebar userName="Demo User" userEmail="demo@annadel.org" />
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</div>
-        </main>
+        {/* Right side */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Top bar with role switcher */}
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide hidden sm:block">
+              Preview Mode
+            </span>
+            <div className="ml-auto">
+              <RoleSwitcher />
+            </div>
+          </header>
+
+          {/* Main content */}
+          <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+          </main>
+        </div>
 
         {/* Mobile bottom nav */}
         <BottomNav />
       </div>
-    </TRPCProvider>
+    </RoleProvider>
   )
 }
