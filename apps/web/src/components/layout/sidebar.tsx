@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { UserButton } from '@clerk/nextjs'
 import {
   CalendarDays,
   Users,
@@ -26,11 +27,11 @@ const navItems = [
 
 interface SidebarProps {
   userName: string
-  userAvatar?: string
   userEmail: string
+  userImageUrl?: string
 }
 
-export function Sidebar({ userName, userEmail }: SidebarProps) {
+export function Sidebar({ userName, userEmail, userImageUrl }: SidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -71,9 +72,13 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
       {/* User */}
       <div className="border-t border-gray-200 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">
-            {userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
-          </div>
+          {userImageUrl ? (
+            <UserButton afterSignOutUrl="/" />
+          ) : (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">
+              {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-gray-900">{userName}</p>
             <p className="truncate text-xs text-gray-500">{userEmail}</p>
