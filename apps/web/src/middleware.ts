@@ -1,16 +1,10 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
-const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith('pk_')
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
-
-export default hasClerk
-  ? clerkMiddleware((auth, req) => {
-      if (isProtectedRoute(req)) {
-        auth().protect()
-      }
-    })
-  : () => NextResponse.next()
+// Auth protection disabled for local preview.
+// To enable: replace with clerkMiddleware() and add your Clerk keys to .env.local
+export default function middleware() {
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
