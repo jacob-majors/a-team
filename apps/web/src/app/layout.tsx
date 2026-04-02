@@ -10,13 +10,21 @@ export const metadata: Metadata = {
   description: 'Team management for Annadel Composite youth mountain bike team',
 }
 
+const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith('pk_')
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  if (!hasClerk) {
+    return (
+      <html lang="en">
+        <body className={inter.className}>{children}</body>
+      </html>
+    )
+  }
+
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={inter.className}>
-          {children}
-        </body>
+        <body className={inter.className}>{children}</body>
       </html>
     </ClerkProvider>
   )

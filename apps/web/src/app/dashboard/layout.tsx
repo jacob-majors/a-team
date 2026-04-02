@@ -1,11 +1,21 @@
-import { auth, currentUser } from '@clerk/nextjs/server'
 import { Sidebar } from '@/components/layout/sidebar'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { RoleProvider, RoleSwitcher } from '@/components/layout/role-switcher'
 
+// Lazy import Clerk only when available — avoids crashing when keys are missing
+async function getClerkUser() {
+  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  if (!key?.startsWith('pk_')) return null
+  try {
+    const { currentUser } = await import('@clerk/nextjs/server')
+    return await currentUser()
+  } catch {
+    return null
+  }
+}
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth()
-  const user = userId ? await currentUser() : null
+  const user = await getClerkUser()
 
   const userName = user?.fullName
     ?? user?.emailAddresses[0]?.emailAddress
@@ -18,10 +28,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Sidebar userName={userName} userEmail={userEmail} userImageUrl={user?.imageUrl} />
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          {/* Top bar */}
           <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
             <span className="hidden text-xs font-medium uppercase tracking-wide text-gray-400 sm:block">
-              {userId ? userName : 'Preview Mode'}
+              {user ? userName : 'Preview Mode'}
             </span>
             <div className="ml-auto">
               <RoleSwitcher />
