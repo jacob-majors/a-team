@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,16 +12,17 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+          50:  '#ebf8fc',
+          100: '#cdf0fa',
+          200: '#9de3f6',
+          300: '#59cdf0',
+          400: '#0fb8e3',
+          500: '#0898c0',
+          600: '#047499',  // primary accent #047499
+          700: '#035d7a',
+          800: '#034a62',
+          900: '#023546',
+          950: '#021e2a',
         },
       },
     },

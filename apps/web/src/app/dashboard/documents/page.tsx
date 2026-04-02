@@ -90,7 +90,7 @@ export default function DocumentsPage() {
             </label>
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600"
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
             >
               <Plus className="h-4 w-4" /> Add Link
             </button>
@@ -105,7 +105,7 @@ export default function DocumentsPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search documents..."
-          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-orange-400 focus:outline-none"
+          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-brand-400 focus:outline-none"
         />
       </div>
 
@@ -116,7 +116,7 @@ export default function DocumentsPage() {
             key={cat}
             onClick={() => setCatFilter(cat)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              catFilter === cat ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              catFilter === cat ? 'bg-brand-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
             {cat}
@@ -135,8 +135,8 @@ export default function DocumentsPage() {
           <div className="divide-y divide-gray-100">
             {filtered.map(doc => (
               <div key={doc.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-50">
-                  <FileText className="h-5 w-5 text-orange-500" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50">
+                  <FileText className="h-5 w-5 text-brand-500" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">{doc.name}</p>
@@ -185,18 +185,18 @@ export default function DocumentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                 <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
                   placeholder="e.g. 2025 Medical Waiver"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
                 <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))}
                   placeholder="https://..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none">
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none">
                   {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
@@ -204,11 +204,11 @@ export default function DocumentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Optional short description"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowAdd(false)} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
-                <button type="submit" className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">Add</button>
+                <button type="submit" className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white">Add</button>
               </div>
             </form>
           </div>

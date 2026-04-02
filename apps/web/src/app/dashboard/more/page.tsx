@@ -16,7 +16,7 @@ export default function MorePage() {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-4 rounded-xl bg-white border border-gray-200 p-4 shadow-sm transition hover:border-orange-200"
+            className="flex items-center gap-4 rounded-xl bg-white border border-gray-200 p-4 shadow-sm transition hover:border-brand-200"
           >
             <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${color}`}>
               <Icon className="h-6 w-6" />

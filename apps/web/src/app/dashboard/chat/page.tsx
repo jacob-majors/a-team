@@ -412,7 +412,7 @@ export default function ChatPage() {
               onClick={() => setActiveChannelId(ch.id)}
               className={cn(
                 'w-full px-4 py-2.5 text-left transition-colors',
-                activeChannel?.id === ch.id ? 'bg-orange-50 text-orange-600' : 'text-gray-600 hover:bg-gray-50'
+                activeChannel?.id === ch.id ? 'bg-brand-50 text-brand-600' : 'text-gray-600 hover:bg-gray-50'
               )}
             >
               <p className="text-sm font-medium flex items-center gap-1">
@@ -464,7 +464,7 @@ export default function ChatPage() {
                         onMouseLeave={() => { setHoverMsg(null); setEmojiPickerFor(null) }}
                       >
                         {/* Avatar */}
-                        <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold mt-0.5', grouped && 'opacity-0', isMe ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-700')}>
+                        <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold mt-0.5', grouped && 'opacity-0', isMe ? 'bg-brand-100 text-brand-700' : 'bg-gray-200 text-gray-700')}>
                           {msg.avatarInitials}
                         </div>
 
@@ -472,7 +472,7 @@ export default function ChatPage() {
                           {/* Sender + time */}
                           {!grouped && (
                             <div className="flex items-baseline gap-2 mb-0.5">
-                              <span className={cn('text-sm font-semibold', isMe ? 'text-orange-600' : 'text-gray-800')}>
+                              <span className={cn('text-sm font-semibold', isMe ? 'text-brand-600' : 'text-gray-800')}>
                                 {msg.userName}
                               </span>
                               <span className="text-xs text-gray-400">
@@ -484,10 +484,10 @@ export default function ChatPage() {
 
                           {/* Reply snippet */}
                           {msg.replyTo && !msg.deleted && (
-                            <div className="mb-1 flex items-start gap-1.5 rounded-md border-l-2 border-orange-300 bg-orange-50 px-2 py-1 text-xs">
-                              <CornerDownRight className="h-3 w-3 text-orange-400 shrink-0 mt-0.5" />
+                            <div className="mb-1 flex items-start gap-1.5 rounded-md border-l-2 border-brand-300 bg-brand-50 px-2 py-1 text-xs">
+                              <CornerDownRight className="h-3 w-3 text-brand-400 shrink-0 mt-0.5" />
                               <div className="min-w-0">
-                                <span className="font-medium text-orange-700">{msg.replyTo.userName}</span>
+                                <span className="font-medium text-brand-700">{msg.replyTo.userName}</span>
                                 <span className="ml-1 text-gray-500 truncate">{msg.replyTo.content.slice(0, 80)}</span>
                               </div>
                             </div>
@@ -500,12 +500,12 @@ export default function ChatPage() {
                                 value={editContent}
                                 onChange={e => setEditContent(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitEdit() } if (e.key === 'Escape') { setEditingId(null) } }}
-                                className="flex-1 rounded-lg border border-orange-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 resize-none"
+                                className="flex-1 rounded-lg border border-brand-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-400 resize-none"
                                 rows={2}
                                 autoFocus
                               />
                               <div className="flex flex-col gap-1">
-                                <button onClick={submitEdit} className="rounded px-2 py-1 bg-orange-500 text-white text-xs">Save</button>
+                                <button onClick={submitEdit} className="rounded px-2 py-1 bg-brand-500 text-white text-xs">Save</button>
                                 <button onClick={() => setEditingId(null)} className="rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs">Cancel</button>
                               </div>
                             </div>
@@ -513,7 +513,7 @@ export default function ChatPage() {
                             <p className={cn('text-sm leading-relaxed break-words whitespace-pre-wrap', msg.deleted ? 'italic text-gray-400' : 'text-gray-800')}>
                               {msg.content.split(/(@\w[\w\s]*)/g).map((part, j) =>
                                 part.startsWith('@') ? (
-                                  <span key={j} className="font-semibold text-orange-600 bg-orange-50 rounded px-0.5">{part}</span>
+                                  <span key={j} className="font-semibold text-brand-600 bg-brand-50 rounded px-0.5">{part}</span>
                                 ) : part
                               )}
                             </p>
@@ -529,7 +529,7 @@ export default function ChatPage() {
                                   className={cn(
                                     'flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm transition-colors',
                                     r.users.includes(myUserId ?? '')
-                                      ? 'border-orange-300 bg-orange-50 text-orange-700'
+                                      ? 'border-brand-300 bg-brand-50 text-brand-700'
                                       : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                                   )}
                                   title={r.users.length + ' reaction' + (r.users.length !== 1 ? 's' : '')}
@@ -603,9 +603,9 @@ export default function ChatPage() {
             <div className="border-t border-gray-200 px-4 py-3">
               {/* Reply preview */}
               {replyTo && (
-                <div className="mb-2 flex items-center gap-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-1.5 text-xs">
-                  <CornerDownRight className="h-3 w-3 text-orange-400 shrink-0" />
-                  <span className="text-orange-700 font-medium">{replyTo.userName}:</span>
+                <div className="mb-2 flex items-center gap-2 rounded-lg bg-brand-50 border border-brand-200 px-3 py-1.5 text-xs">
+                  <CornerDownRight className="h-3 w-3 text-brand-400 shrink-0" />
+                  <span className="text-brand-700 font-medium">{replyTo.userName}:</span>
                   <span className="text-gray-600 truncate flex-1">{replyTo.content.slice(0, 60)}</span>
                   <button onClick={() => setReplyTo(null)} className="text-gray-400 hover:text-gray-600">
                     <X className="h-3 w-3" />
@@ -620,9 +620,9 @@ export default function ChatPage() {
                     <button
                       key={u.id}
                       onClick={() => insertMention(u)}
-                      className={cn('flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-orange-50', i === mentionIndex && 'bg-orange-50 text-orange-700')}
+                      className={cn('flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-brand-50', i === mentionIndex && 'bg-brand-50 text-brand-700')}
                     >
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
                         {initials(u.name)}
                       </div>
                       {u.name}
@@ -640,7 +640,7 @@ export default function ChatPage() {
                     onKeyDown={handleKeyDown}
                     placeholder={`Message #${activeChannel.name}… (@ to mention)`}
                     rows={1}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400 resize-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-400 resize-none"
                     style={{ minHeight: '2.75rem', maxHeight: '8rem' }}
                     onInput={e => {
                       const t = e.currentTarget
@@ -650,7 +650,7 @@ export default function ChatPage() {
                   />
                   <button
                     onClick={() => { setInput(i => i + '@'); inputRef.current?.focus(); setMentionQuery('') }}
-                    className="absolute right-3 bottom-2.5 text-gray-400 hover:text-orange-500"
+                    className="absolute right-3 bottom-2.5 text-gray-400 hover:text-brand-500"
                   >
                     <AtSign className="h-4 w-4" />
                   </button>
@@ -658,7 +658,7 @@ export default function ChatPage() {
                 <button
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-40"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -686,11 +686,11 @@ export default function ChatPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Channel name</label>
                 <input value={newChannelName} onChange={e => setNewChannelName(e.target.value)}
                   placeholder="e.g. race-day" autoFocus
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setShowNewChannel(false)} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
-                <button type="submit" className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">Create</button>
+                <button type="submit" className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white">Create</button>
               </div>
             </form>
           </div>

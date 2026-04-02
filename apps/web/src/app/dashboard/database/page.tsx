@@ -120,7 +120,7 @@ function ExportModal({ onClose, members }: { onClose: () => void; members: Membe
           ].map(({ key, label }) => (
             <label key={key} className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={selected[key]} onChange={() => toggle(key)}
-                className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                className="h-4 w-4 rounded border-gray-300 text-brand-500" />
               <span className="text-sm text-gray-700">{label}</span>
             </label>
           ))}
@@ -128,19 +128,19 @@ function ExportModal({ onClose, members }: { onClose: () => void; members: Membe
           <div className="border-t border-gray-100 pt-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={selected.optInOnly} onChange={() => toggle('optInOnly')}
-                className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                className="h-4 w-4 rounded border-gray-300 text-brand-500" />
               <span className="text-sm font-medium text-gray-700">Email opt-in only</span>
             </label>
           </div>
 
-          <div className="rounded-lg bg-orange-50 border border-orange-200 px-4 py-2 text-sm text-orange-700 font-medium">
+          <div className="rounded-lg bg-brand-50 border border-brand-200 px-4 py-2 text-sm text-brand-700 font-medium">
             {count} email{count !== 1 ? 's' : ''} will be exported
           </div>
 
           <div className="flex gap-3 pt-2">
             <button onClick={onClose} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
             <button onClick={doExport} disabled={count === 0}
-              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-40">
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40">
               <Download className="h-4 w-4" /> Export CSV
             </button>
           </div>
@@ -193,7 +193,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
           <div className="flex gap-2">
             {editing ? (
               <>
-                <button onClick={saveEdit} className="flex items-center gap-1 rounded-lg bg-orange-500 px-3 py-1.5 text-sm text-white">
+                <button onClick={saveEdit} className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm text-white">
                   <Save className="h-3.5 w-3.5" /> Save
                 </button>
                 <button onClick={cancelEdit} className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700">Cancel</button>
@@ -212,19 +212,19 @@ function MemberDetail({ member, onClose, onSave, section }: {
         <div className="p-6 space-y-6">
           {/* Avatar + name */}
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-lg font-bold text-orange-700">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">
               {member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
             </div>
             <div>
               {editing ? (
                 <input value={f.name ?? ''} onChange={e => set('name', e.target.value)}
-                  className="text-lg font-bold text-gray-900 border-b border-orange-400 outline-none bg-transparent" />
+                  className="text-lg font-bold text-gray-900 border-b border-brand-400 outline-none bg-transparent" />
               ) : (
                 <p className="text-lg font-bold text-gray-900">{member.name}</p>
               )}
               <span className={cn('text-xs font-medium rounded-full px-2 py-0.5 capitalize',
                 member.isAlumni ? 'bg-purple-100 text-purple-700' :
-                member.role === 'athlete' ? 'bg-orange-100 text-orange-700' :
+                member.role === 'athlete' ? 'bg-brand-100 text-brand-700' :
                 member.role === 'coach' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
               )}>
                 {member.isAlumni ? 'Alumni' : member.role}
@@ -244,7 +244,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
                 {editing ? (
                   <input type={type} value={(f[key] as string) ?? ''} onChange={e => set(key, e.target.value)}
                     placeholder={label}
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-orange-400 focus:outline-none" />
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-400 focus:outline-none" />
                 ) : (
                   <div>
                     <p className="text-xs text-gray-400">{label}</p>
@@ -259,7 +259,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
               <span className="text-sm text-gray-600">Email opt-in</span>
               {editing ? (
                 <input type="checkbox" checked={f.emailOptIn ?? false} onChange={e => set('emailOptIn', e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                  className="h-4 w-4 rounded border-gray-300 text-brand-500" />
               ) : (
                 member.emailOptIn
                   ? <CheckCircle className="h-5 w-5 text-green-500" />
@@ -278,7 +278,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
                   {editing ? (
                     <input type={type} value={(f[key] as string) ?? ''} onChange={e => set(key, e.target.value)}
                       placeholder="—"
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-orange-400 focus:outline-none text-right" />
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-400 focus:outline-none text-right" />
                   ) : (
                     <span className="text-sm font-medium text-gray-800 text-right">{(member[key] as string) || '—'}</span>
                   )}
@@ -293,7 +293,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
                   <span className="text-sm text-gray-500">{label}</span>
                   {editing ? (
                     <input type="checkbox" checked={(f[key] as boolean) ?? false} onChange={e => set(key, e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                      className="h-4 w-4 rounded border-gray-300 text-brand-500" />
                   ) : (
                     (member[key] as boolean)
                       ? <CheckCircle className="h-5 w-5 text-green-500" />
@@ -314,7 +314,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
                   {editing ? (
                     <input type={type} value={(f[key] as string) ?? ''} onChange={e => set(key, type === 'number' ? Number(e.target.value) : e.target.value)}
                       placeholder="—"
-                      className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-orange-400 focus:outline-none text-right" />
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-400 focus:outline-none text-right" />
                   ) : (
                     <span className="text-sm font-medium text-gray-800 text-right">{(member[key] as string | number | null) ?? '—'}</span>
                   )}
@@ -324,7 +324,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
                 <span className="text-sm text-gray-500">Wants Contact</span>
                 {editing ? (
                   <input type="checkbox" checked={f.wantsContact ?? false} onChange={e => set('wantsContact', e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                    className="h-4 w-4 rounded border-gray-300 text-brand-500" />
                 ) : (
                   member.wantsContact ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-400" />
                 )}
@@ -337,7 +337,7 @@ function MemberDetail({ member, onClose, onSave, section }: {
             <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400">Notes</h4>
             {editing ? (
               <textarea value={f.notes ?? ''} onChange={e => set('notes', e.target.value)} rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none resize-none" />
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none resize-none" />
             ) : (
               <p className="text-sm text-gray-700">{member.notes || '—'}</p>
             )}
@@ -506,7 +506,7 @@ export default function DatabasePage() {
         </div>
         <button
           onClick={() => setShowExport(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
         >
           <Download className="h-4 w-4" /> Export Emails
         </button>
@@ -539,14 +539,14 @@ export default function DatabasePage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search name, email, phone…"
-          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-orange-400 focus:outline-none"
+          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-brand-400 focus:outline-none"
         />
       </div>
 
       {/* Table */}
       {loading ? (
         <div className="flex h-32 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
@@ -577,7 +577,7 @@ export default function DatabasePage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-semibold text-orange-700">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
                           {m.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
                         <span className="font-medium text-gray-900">{m.name}</span>

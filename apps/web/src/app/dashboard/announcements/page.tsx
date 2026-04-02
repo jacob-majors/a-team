@@ -52,7 +52,7 @@ export default function AnnouncementsPage() {
         {canCreate && (
           <button
             onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
           >
             <Plus className="h-4 w-4" /> New Announcement
           </button>
@@ -78,8 +78,8 @@ export default function AnnouncementsPage() {
                 <X className="h-4 w-4" />
               </button>
               <div className="flex items-start gap-4 pr-8">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100">
-                  <Megaphone className="h-5 w-5 text-orange-500" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100">
+                  <Megaphone className="h-5 w-5 text-brand-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{item.title}</h3>
@@ -109,7 +109,7 @@ export default function AnnouncementsPage() {
                   value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                   placeholder="e.g. Race Season Kickoff"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
                   required
                 />
               </div>
@@ -120,13 +120,13 @@ export default function AnnouncementsPage() {
                   onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
                   placeholder="Write your announcement..."
                   rows={5}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none resize-none"
                   required
                 />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
-                <button type="submit" className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">Post</button>
+                <button type="submit" className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white">Post</button>
               </div>
             </form>
           </div>

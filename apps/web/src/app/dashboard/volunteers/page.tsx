@@ -63,7 +63,7 @@ export default function VolunteersPage() {
         {canManage && (
           <button
             onClick={() => setShowAdd(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
           >
             <Plus className="h-4 w-4" /> Add Slot
           </button>
@@ -94,8 +94,8 @@ export default function VolunteersPage() {
                     return (
                       <div key={slot.id} className="flex items-center justify-between px-6 py-4 group">
                         <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${full ? 'bg-green-50' : 'bg-orange-50'}`}>
-                            <HandHeart className={`h-5 w-5 ${full ? 'text-green-500' : 'text-orange-500'}`} />
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${full ? 'bg-green-50' : 'bg-brand-50'}`}>
+                            <HandHeart className={`h-5 w-5 ${full ? 'text-green-500' : 'text-brand-500'}`} />
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">{slot.name}</p>
@@ -113,7 +113,7 @@ export default function VolunteersPage() {
                           ) : full ? (
                             <span className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-400">Full</span>
                           ) : (
-                            <button onClick={() => toggleSignup(slot.id)} className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600">
+                            <button onClick={() => toggleSignup(slot.id)} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600">
                               Sign Up
                             </button>
                           )}
@@ -146,27 +146,27 @@ export default function VolunteersPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Event Name *</label>
                 <input value={form.eventName} onChange={e => setForm(f => ({ ...f, eventName: e.target.value }))} required
                   placeholder="e.g. North Bay Regional Race"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Event Date</label>
                 <input type="date" value={form.eventDate} onChange={e => setForm(f => ({ ...f, eventDate: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Role / Slot Name *</label>
                 <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
                   placeholder="e.g. Pit Zone Marshal"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
                 <input type="number" min={1} value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: Number(e.target.value) }))}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowAdd(false)} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
-                <button type="submit" className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">Add Slot</button>
+                <button type="submit" className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white">Add Slot</button>
               </div>
             </form>
           </div>

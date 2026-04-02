@@ -19,7 +19,7 @@ interface Album {
 }
 
 const ALBUM_GRADIENTS = [
-  'from-orange-400 to-orange-600',
+  'from-brand-400 to-brand-600',
   'from-blue-400 to-blue-600',
   'from-green-400 to-green-600',
   'from-purple-400 to-purple-600',
@@ -89,7 +89,7 @@ export default function PhotosPage() {
             </div>
           </div>
           {canManage && (
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600">
               <Plus className="h-4 w-4" /> Add Photos
               <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
             </label>
@@ -146,7 +146,7 @@ export default function PhotosPage() {
         {canManage && (
           <button
             onClick={() => setShowCreateAlbum(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
           >
             <Plus className="h-4 w-4" /> New Album
           </button>
@@ -204,17 +204,17 @@ export default function PhotosPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Album Name *</label>
                 <input value={albumForm.name} onChange={e => setAlbumForm(f => ({ ...f, name: e.target.value }))} required
                   placeholder="e.g. Spring Race 2025"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <input value={albumForm.description} onChange={e => setAlbumForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Optional description"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowCreateAlbum(false)} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
-                <button type="submit" className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">Create Album</button>
+                <button type="submit" className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white">Create Album</button>
               </div>
             </form>
           </div>

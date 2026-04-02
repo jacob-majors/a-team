@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Search, CheckCircle, XCircle, Upload, X, Plus, AlertCircle, ArrowRight } from 'lucide-react'
 import Papa from 'papaparse'
 import { cn } from '@a-team/utils'
+import { createClient } from '@/lib/supabase/client'
 
 type Role = 'athlete' | 'coach' | 'parent' | 'admin'
 
@@ -34,7 +35,7 @@ interface Member {
 }
 
 const ROLE_STYLES: Record<Role, string> = {
-  athlete: 'bg-orange-100 text-orange-700',
+  athlete: 'bg-brand-100 text-brand-700',
   coach: 'bg-blue-100 text-blue-700',
   parent: 'bg-purple-100 text-purple-700',
   admin: 'bg-gray-100 text-gray-700',
@@ -48,7 +49,7 @@ const GROUP_LABELS: { key: keyof Member; label: string; color: string }[] = [
   { key: 'isTeamCaptain',    label: 'Team Captain',   color: 'bg-purple-100 text-purple-700' },
   { key: 'isWindsorHS',      label: 'Windsor HS',     color: 'bg-teal-100 text-teal-700' },
   { key: 'hasTrainingPeaks', label: 'Training Peaks', color: 'bg-indigo-100 text-indigo-700' },
-  { key: 'isChild',          label: 'Child',          color: 'bg-orange-100 text-orange-700' },
+  { key: 'isChild',          label: 'Child',          color: 'bg-brand-100 text-brand-700' },
 ]
 
 // App fields the user can map CSV columns to
@@ -123,6 +124,62 @@ function guessMapping(headers: string[]): Record<string, string> {
   return map
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbToMember(row: any): Member {
+  return {
+    id: row.id,
+    firstName: row.first_name ?? '',
+    lastName: row.last_name ?? '',
+    name: row.full_name,
+    email: row.email ?? '',
+    phone: row.phone ?? '',
+    grade: row.grade ?? '',
+    role: row.role as Role,
+    otherRole: row.other_role ?? '',
+    isAdmin: row.is_admin,
+    isGuardian: row.is_guardian,
+    isRacer: row.is_racer,
+    isHSAthlete: row.is_hs_athlete,
+    isDevAthlete: row.is_dev_athlete,
+    isGrit: row.is_grit,
+    isTeamCaptain: row.is_team_captain,
+    isWindsorHS: row.is_windsor_hs,
+    hasTrainingPeaks: row.has_training_peaks,
+    isChild: row.is_child,
+    duesPaid: row.dues_paid,
+    duesAmount: row.dues_amount ?? undefined,
+    pitZoneStatus: row.pit_zone_status ?? '',
+    notes: row.notes ?? '',
+  }
+}
+
+function memberToDb(m: Omit<Member, 'id' | 'name'> & { name: string }) {
+  return {
+    first_name: m.firstName,
+    last_name: m.lastName || null,
+    full_name: m.name,
+    email: m.email || null,
+    phone: m.phone || null,
+    grade: m.grade || null,
+    role: m.role,
+    other_role: m.otherRole || null,
+    is_admin: m.isAdmin,
+    is_guardian: m.isGuardian,
+    is_racer: m.isRacer,
+    is_hs_athlete: m.isHSAthlete,
+    is_dev_athlete: m.isDevAthlete,
+    is_grit: m.isGrit,
+    is_team_captain: m.isTeamCaptain,
+    is_windsor_hs: m.isWindsorHS,
+    has_training_peaks: m.hasTrainingPeaks,
+    is_child: m.isChild,
+    dues_paid: m.duesPaid,
+    dues_amount: m.duesAmount ?? null,
+    pit_zone_status: m.pitZoneStatus || null,
+    notes: m.notes || null,
+  }
+}
+
 function isTruthy(val: string | undefined) {
   return ['true', 'yes', '1', 'x', '✓', 'check', 'checked'].includes((val ?? '').toLowerCase().trim())
 }
@@ -149,6 +206,7 @@ const EMPTY_FORM: Omit<Member, 'id' | 'name'> = {
 type ImportStep = 'upload' | 'map' | 'done'
 
 export default function RosterPage() {
+  const supabase = createClient()
   const [members, setMembers] = useState<Member[]>([])
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -166,6 +224,14 @@ export default function RosterPage() {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([])
   const [csvRows, setCsvRows] = useState<Record<string, string>[]>([])
   const [columnMap, setColumnMap] = useState<Record<string, string>>({}) // appField -> csvHeader
+
+  // Load from Supabase on mount
+  useEffect(() => {
+    supabase.from('roster_members').select('*').order('full_name').then(({ data }) => {
+      if (data) setMembers(data.map(dbToMember))
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const filtered = members.filter(m => {
     const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -244,7 +310,19 @@ export default function RosterPage() {
       } as Member)
     })
 
-    setMembers(prev => [...prev, ...added])
+    if (added.length > 0) {
+      const rows = added.map(m => memberToDb(m))
+      supabase.from('roster_members').insert(rows).then(({ data, error }) => {
+        if (!error && data) {
+          // Reload from DB to get server-assigned IDs
+          supabase.from('roster_members').select('*').order('full_name').then(({ data: fresh }) => {
+            if (fresh) setMembers(fresh.map(dbToMember))
+          })
+        } else {
+          setMembers(prev => [...prev, ...added])
+        }
+      })
+    }
     setImportResult({ added: added.length, dupes: dupes.length, errors })
     setShowImport(false)
     setImportStep('upload')
@@ -262,26 +340,32 @@ export default function RosterPage() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  function handleAddMember(e: React.FormEvent) {
+  async function handleAddMember(e: React.FormEvent) {
     e.preventDefault()
     if (!form.firstName.trim()) return
     const name = [form.firstName, form.lastName].filter(Boolean).join(' ')
-    const newMember: Member = { ...form, id: crypto.randomUUID(), name, role: deriveRole({ ...form }) }
-    setMembers(prev => [...prev, newMember])
+    const role = deriveRole({ ...form })
+    const dbRow = memberToDb({ ...form, name, role })
+    const { data } = await supabase.from('roster_members').insert(dbRow).select().single()
+    if (data) {
+      setMembers(prev => [...prev, dbToMember(data)].sort((a, b) => a.name.localeCompare(b.name)))
+    }
     setForm({ ...EMPTY_FORM })
     setShowAdd(false)
   }
 
-  function handleUpdateSelected() {
+  async function handleUpdateSelected() {
     if (!selected) return
     const updated = { ...selected, name: [selected.firstName, selected.lastName].filter(Boolean).join(' '), role: deriveRole(selected) }
+    await supabase.from('roster_members').update(memberToDb(updated)).eq('id', updated.id)
     setMembers(prev => prev.map(m => m.id === updated.id ? updated : m))
     setSelected(updated)
     setEditMode(false)
   }
 
-  function handleDeleteSelected() {
+  async function handleDeleteSelected() {
     if (!selected) return
+    await supabase.from('roster_members').delete().eq('id', selected.id)
     setMembers(prev => prev.filter(m => m.id !== selected.id))
     setSelected(null)
   }
@@ -300,7 +384,7 @@ export default function RosterPage() {
             <Upload className="h-4 w-4" /> Import CSV
           </button>
           <button onClick={() => { setForm({ ...EMPTY_FORM }); setShowAdd(true) }}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600">
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600">
             <Plus className="h-4 w-4" /> Add Member
           </button>
         </div>
@@ -325,17 +409,17 @@ export default function RosterPage() {
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-orange-400 focus:outline-none" />
+            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-brand-400 focus:outline-none" />
         </div>
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none">
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-400 focus:outline-none">
           <option value="">All roles</option>
           <option value="athlete">Athletes</option>
           <option value="parent">Guardians</option>
           <option value="admin">Admins</option>
         </select>
         <select value={groupFilter} onChange={e => setGroupFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none">
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-400 focus:outline-none">
           <option value="">All groups</option>
           {GROUP_LABELS.map(g => <option key={g.key as string} value={g.key as string}>{g.label}</option>)}
         </select>
@@ -365,7 +449,7 @@ export default function RosterPage() {
                     className="hover:bg-gray-50 cursor-pointer transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-semibold text-orange-700">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
                           {getInitials(member.name)}
                         </div>
                         <div>
@@ -419,7 +503,7 @@ export default function RosterPage() {
 
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-700">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-xl font-bold text-brand-700">
                   {getInitials(selected.name)}
                 </div>
                 <div>
@@ -437,7 +521,7 @@ export default function RosterPage() {
                       <div key={key}>
                         <label className="block text-xs font-medium text-gray-500 mb-1">{key === 'firstName' ? 'First Name' : 'Last Name'}</label>
                         <input value={selected[key]} onChange={e => setSelected(s => s ? { ...s, [key]: e.target.value } : s)}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
                       </div>
                     ))}
                   </div>
@@ -451,7 +535,7 @@ export default function RosterPage() {
                     <div key={key}>
                       <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
                       <input value={(selected[key] as string) ?? ''} onChange={e => setSelected(s => s ? { ...s, [key]: e.target.value } : s)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
                     </div>
                   ))}
                   <div>
@@ -472,7 +556,7 @@ export default function RosterPage() {
                         <label key={key} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                           <input type="checkbox" checked={!!selected[key]}
                             onChange={e => setSelected(s => s ? { ...s, [key]: e.target.checked } : s)}
-                            className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                            className="h-4 w-4 rounded border-gray-300 text-brand-500" />
                           {label}
                         </label>
                       ))}
@@ -481,16 +565,16 @@ export default function RosterPage() {
                   <div className="flex items-center gap-2">
                     <input type="checkbox" id="duesPaid" checked={selected.duesPaid}
                       onChange={e => setSelected(s => s ? { ...s, duesPaid: e.target.checked } : s)}
-                      className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                      className="h-4 w-4 rounded border-gray-300 text-brand-500" />
                     <label htmlFor="duesPaid" className="text-sm text-gray-700">Dues paid</label>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Notes</label>
                     <textarea value={selected.notes} onChange={e => setSelected(s => s ? { ...s, notes: e.target.value } : s)}
-                      rows={3} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none resize-none" />
+                      rows={3} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none resize-none" />
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={handleUpdateSelected} className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600">Save</button>
+                    <button onClick={handleUpdateSelected} className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white hover:bg-brand-600">Save</button>
                     <button onClick={handleDeleteSelected} className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50">Remove</button>
                   </div>
                 </div>
@@ -541,12 +625,12 @@ export default function RosterPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                   <input required value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                   <input value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
                 </div>
               </div>
               {([
@@ -558,7 +642,7 @@ export default function RosterPage() {
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
                   <input type={type} value={(form[key] as string) ?? ''} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
                 </div>
               ))}
               <div>
@@ -578,7 +662,7 @@ export default function RosterPage() {
                   ]).map(({ key, label }) => (
                     <label key={key} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                       <input type="checkbox" checked={!!form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
-                        className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                        className="h-4 w-4 rounded border-gray-300 text-brand-500" />
                       {label}
                     </label>
                   ))}
@@ -586,12 +670,12 @@ export default function RosterPage() {
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="addDuesPaid" checked={form.duesPaid} onChange={e => setForm(f => ({ ...f, duesPaid: e.target.checked }))}
-                  className="h-4 w-4 rounded border-gray-300 text-orange-500" />
+                  className="h-4 w-4 rounded border-gray-300 text-brand-500" />
                 <label htmlFor="addDuesPaid" className="text-sm text-gray-700">Dues paid</label>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowAdd(false)} className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
-                <button type="submit" className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">Add Member</button>
+                <button type="submit" className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white">Add Member</button>
               </div>
             </form>
           </div>
@@ -608,9 +692,9 @@ export default function RosterPage() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Import CSV</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', importStep === 'upload' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500')}>1 Upload</span>
+                  <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', importStep === 'upload' ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-500')}>1 Upload</span>
                   <ArrowRight className="h-3 w-3 text-gray-300" />
-                  <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', importStep === 'map' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500')}>2 Map columns</span>
+                  <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', importStep === 'map' ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-500')}>2 Map columns</span>
                 </div>
               </div>
               <button onClick={closeImport}><X className="h-5 w-5 text-gray-500" /></button>
@@ -622,7 +706,7 @@ export default function RosterPage() {
                 <p className="text-sm text-gray-500 mb-4">
                   Upload any CSV file. You&apos;ll be able to map its columns to the correct fields in the next step.
                 </p>
-                <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-10 text-gray-400 hover:border-orange-400 hover:text-orange-400 transition-colors">
+                <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-10 text-gray-400 hover:border-brand-400 hover:text-brand-400 transition-colors">
                   <Upload className="h-10 w-10" />
                   <span className="text-sm font-medium">Click to upload CSV file</span>
                   <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCSVUpload} />
@@ -645,13 +729,13 @@ export default function RosterPage() {
                       <div key={field.key} className="flex flex-col gap-0.5">
                         <label className="text-xs font-medium text-gray-700 flex items-center gap-1">
                           {field.label}
-                          {field.required && <span className="text-orange-500">*</span>}
+                          {field.required && <span className="text-brand-500">*</span>}
                           {field.boolean && <span className="text-gray-400 font-normal">(boolean)</span>}
                         </label>
                         <select
                           value={columnMap[field.key] ?? ''}
                           onChange={e => setColumnMap(m => ({ ...m, [field.key]: e.target.value }))}
-                          className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none"
+                          className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-700 focus:border-brand-400 focus:outline-none"
                         >
                           <option value="">— skip —</option>
                           {csvHeaders.map(h => (
@@ -685,7 +769,7 @@ export default function RosterPage() {
                   <button
                     onClick={applyImport}
                     disabled={!columnMap['firstName']}
-                    className="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Import {csvRows.length} row{csvRows.length !== 1 ? 's' : ''}
                   </button>

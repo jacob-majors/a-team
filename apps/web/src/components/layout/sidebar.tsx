@@ -4,28 +4,23 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  CalendarDays,
-  Users,
-  MessageSquare,
-  FileText,
-  HandHeart,
-  Camera,
-  Megaphone,
-  LogOut,
-  Database,
+  CalendarDays, Users, MessageSquare, FileText, HandHeart,
+  Camera, Megaphone, LogOut, Database, Settings,
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/theme/toggle'
 
 const navItems = [
-  { href: '/dashboard', label: 'Calendar', icon: CalendarDays, exact: true },
-  { href: '/dashboard/roster', label: 'Roster', icon: Users },
-  { href: '/dashboard/chat', label: 'Chat', icon: MessageSquare },
-  { href: '/dashboard/announcements', label: 'Announcements', icon: Megaphone },
-  { href: '/dashboard/documents', label: 'Documents', icon: FileText },
-  { href: '/dashboard/volunteers', label: 'Volunteers', icon: HandHeart },
-  { href: '/dashboard/photos', label: 'Photos', icon: Camera },
-  { href: '/dashboard/database', label: 'Database', icon: Database },
+  { href: '/dashboard',              label: 'Calendar',      icon: CalendarDays,  exact: true },
+  { href: '/dashboard/roster',       label: 'Roster',        icon: Users },
+  { href: '/dashboard/chat',         label: 'Chat',          icon: MessageSquare },
+  { href: '/dashboard/announcements',label: 'Announcements', icon: Megaphone },
+  { href: '/dashboard/documents',    label: 'Documents',     icon: FileText },
+  { href: '/dashboard/volunteers',   label: 'Volunteers',    icon: HandHeart },
+  { href: '/dashboard/photos',       label: 'Photos',        icon: Camera },
+  { href: '/dashboard/database',     label: 'Database',      icon: Database },
+  { href: '/dashboard/settings',     label: 'Settings',      icon: Settings },
 ]
 
 interface SidebarProps {
@@ -46,10 +41,16 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden md:flex md:flex-col md:w-64 bg-white border-r border-gray-200 shrink-0">
+    <aside className="hidden md:flex md:flex-col md:w-64 bg-[rgb(var(--surface))] border-r border-[rgb(var(--border))] shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
-        <Image src="/logo.png" alt="A-Team Annadel Composite" width={120} height={40} className="object-contain h-10 w-auto" />
+      <div className="flex items-center px-5 py-4 border-b border-[rgb(var(--border))]">
+        <Image
+          src="/logo.png"
+          alt="A-Team Annadel Composite"
+          width={120}
+          height={40}
+          className="object-contain h-10 w-auto dark:brightness-110"
+        />
       </div>
 
       {/* Nav */}
@@ -63,19 +64,20 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 active
-                  ? 'bg-orange-50 text-orange-600'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400'
+                  : 'text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--bg-secondary))] hover:text-[rgb(var(--text))]'
               )}
             >
-              <Icon className={cn('h-5 w-5', active ? 'text-orange-500' : 'text-gray-400')} />
+              <Icon className={cn('h-5 w-5', active ? 'text-brand-500 dark:text-brand-400' : 'text-[rgb(var(--text-muted))]')} />
               {label}
             </Link>
           )
         })}
       </nav>
 
-      {/* User + Sign out */}
-      <div className="border-t border-gray-200 px-4 py-4">
+      {/* Theme toggle + user */}
+      <div className="border-t border-[rgb(var(--border))] px-4 py-3 space-y-3">
+        <ThemeToggle />
         <div className="flex items-center gap-3">
           {userAvatarUrl ? (
             <Image
@@ -86,17 +88,17 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
               className="h-8 w-8 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-950 text-xs font-bold text-brand-700 dark:text-brand-400">
               {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-900">{userName}</p>
-            <p className="truncate text-xs text-gray-500">{userEmail}</p>
+            <p className="truncate text-sm font-medium text-[rgb(var(--text))]">{userName}</p>
+            <p className="truncate text-xs text-[rgb(var(--text-muted))]">{userEmail}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--bg-secondary))] hover:text-[rgb(var(--text))]"
             title="Sign out"
           >
             <LogOut className="h-4 w-4" />

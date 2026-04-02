@@ -12,7 +12,7 @@ export default function DashboardPage() {
       {/* Quick nav cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays, color: 'text-orange-500', bg: 'bg-orange-50' },
+          { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays, color: 'text-brand-500', bg: 'bg-brand-50' },
           { label: 'Roster', href: '/dashboard/roster', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
           { label: 'Announcements', href: '/dashboard/announcements', icon: Megaphone, color: 'text-purple-500', bg: 'bg-purple-50' },
           { label: 'Volunteers', href: '/dashboard/volunteers', icon: HandHeart, color: 'text-green-500', bg: 'bg-green-50' },
@@ -20,7 +20,7 @@ export default function DashboardPage() {
           <Link
             key={label}
             href={href}
-            className="rounded-xl bg-white border border-gray-200 p-5 shadow-sm transition hover:border-orange-200 hover:shadow-md"
+            className="rounded-xl bg-white border border-gray-200 p-5 shadow-sm transition hover:border-brand-200 hover:shadow-md"
           >
             <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg ${bg}`}>
               <Icon className={`h-5 w-5 ${color}`} />
@@ -34,7 +34,7 @@ export default function DashboardPage() {
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Upcoming Events</h2>
-          <Link href="/dashboard/calendar" className="text-sm font-medium text-orange-500 hover:text-orange-600">
+          <Link href="/dashboard/calendar" className="text-sm font-medium text-brand-500 hover:text-brand-600">
             View calendar →
           </Link>
         </div>
@@ -44,7 +44,7 @@ export default function DashboardPage() {
           <p className="text-sm text-gray-400">Add events in the Calendar to see them here</p>
           <Link
             href="/dashboard/calendar"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
           >
             Go to Calendar
           </Link>

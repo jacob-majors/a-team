@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { TRPCProvider } from '@/lib/trpc/provider'
+import { ThemeProvider } from '@/components/theme/provider'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -14,11 +15,29 @@ export const metadata: Metadata = {
   },
 }
 
+// Inline script prevents flash of wrong theme before React hydrates
+const themeScript = `
+  (function() {
+    try {
+      var t = localStorage.getItem('theme') || 'system';
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (t === 'dark' || (t === 'system' && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch(e) {}
+  })();
+`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={inter.className}>
-        <TRPCProvider>{children}</TRPCProvider>
+        <ThemeProvider>
+          <TRPCProvider>{children}</TRPCProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -347,6 +347,40 @@ create policy "media: own upload"  on public.media_items   for insert with check
 create policy "media: staff del"   on public.media_items   for delete
   using (uploaded_by = auth.uid() or my_role() in ('admin','coach'));
 
+-- ── Roster Members (imported/manually added, not tied to auth) ───
+create table if not exists public.roster_members (
+  id               uuid primary key default gen_random_uuid(),
+  first_name       text not null,
+  last_name        text,
+  full_name        text not null,
+  email            text,
+  phone            text,
+  grade            text,
+  role             text not null default 'athlete',
+  other_role       text,
+  is_admin         boolean not null default false,
+  is_guardian      boolean not null default false,
+  is_racer         boolean not null default false,
+  is_hs_athlete    boolean not null default false,
+  is_dev_athlete   boolean not null default false,
+  is_grit          boolean not null default false,
+  is_team_captain  boolean not null default false,
+  is_windsor_hs    boolean not null default false,
+  has_training_peaks boolean not null default false,
+  is_child         boolean not null default false,
+  dues_paid        boolean not null default false,
+  dues_amount      numeric,
+  pit_zone_status  text,
+  notes            text,
+  created_at       timestamptz not null default now()
+);
+
+alter table public.roster_members enable row level security;
+create policy "roster: auth read"   on public.roster_members for select using (auth.uid() is not null);
+create policy "roster: staff write" on public.roster_members for insert with check (my_role() in ('admin','coach'));
+create policy "roster: staff update" on public.roster_members for update using (my_role() in ('admin','coach'));
+create policy "roster: staff del"   on public.roster_members for delete using (my_role() in ('admin','coach'));
+
 -- ================================================================
 -- Realtime — enable postgres_changes on chat tables
 -- ================================================================

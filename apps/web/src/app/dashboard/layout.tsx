@@ -11,28 +11,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/sign-in')
 
-  // Fetch profile from public.users
   const { data: profile } = await supabase
     .from('users')
     .select('name, email, avatar_url')
     .eq('id', user.id)
     .single()
 
-  const userName = profile?.name ?? user.email ?? 'User'
-  const userEmail = profile?.email ?? user.email ?? ''
+  const userName     = profile?.name      ?? user.email ?? 'User'
+  const userEmail    = profile?.email     ?? user.email ?? ''
   const userAvatarUrl = profile?.avatar_url ?? user.user_metadata?.['avatar_url'] ?? undefined
 
   return (
     <RoleProvider>
-      <div className="flex h-screen overflow-hidden bg-gray-50">
+      <div className="flex h-screen overflow-hidden bg-[rgb(var(--bg-secondary))]">
         <Sidebar userName={userName} userEmail={userEmail} userAvatarUrl={userAvatarUrl} />
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 sm:px-6">
             <div className="flex items-center gap-3 md:hidden">
               <Image src="/logo.png" alt="A-Team" width={90} height={30} className="object-contain h-8 w-auto" />
             </div>
-            <span className="hidden text-xs font-medium uppercase tracking-wide text-gray-400 sm:block">
+            <span className="hidden text-xs font-medium uppercase tracking-wide text-[rgb(var(--text-muted))] sm:block">
               {userName}
             </span>
             <div className="ml-auto">

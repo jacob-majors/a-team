@@ -73,7 +73,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
       <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-900">Ride Groups</h2>
-          <button className="text-sm font-medium text-orange-500 hover:text-orange-600">+ Add Group</button>
+          <button className="text-sm font-medium text-brand-500 hover:text-brand-600">+ Add Group</button>
         </div>
         <div className="space-y-3">
           {[

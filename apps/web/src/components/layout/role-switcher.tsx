@@ -23,7 +23,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 const ROLES: { value: Role; label: string; color: string; active: string }[] = [
   { value: 'admin', label: 'Admin', color: 'text-gray-600', active: 'bg-gray-900 text-white' },
   { value: 'coach', label: 'Coach', color: 'text-blue-600', active: 'bg-blue-600 text-white' },
-  { value: 'athlete', label: 'Athlete', color: 'text-orange-600', active: 'bg-orange-500 text-white' },
+  { value: 'athlete', label: 'Athlete', color: 'text-brand-600', active: 'bg-brand-500 text-white' },
   { value: 'parent', label: 'Parent', color: 'text-purple-600', active: 'bg-purple-600 text-white' },
 ]
 
