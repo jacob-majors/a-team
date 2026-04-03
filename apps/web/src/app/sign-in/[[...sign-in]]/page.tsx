@@ -45,9 +45,8 @@ export default function SignInPage() {
   }
 
   function handleDevLogin() {
-    document.cookie = 'dev_bypass=1; path=/'
-    router.push('/dashboard')
-    router.refresh()
+    document.cookie = 'dev_bypass=1; path=/; max-age=86400'
+    window.location.href = '/dashboard'
   }
 
   async function signIn(e: string, p: string) {
@@ -145,14 +144,13 @@ export default function SignInPage() {
           </Link>
         </p>
 
-        {/* Discrete dev bypass */}
         {IS_DEV && (
           <button
             type="button"
             onClick={handleDevLogin}
-            className="mt-6 mx-auto block text-xs text-white/25 hover:text-white/50 transition-colors"
+            className="mt-6 mx-auto block text-xs text-white/40 hover:text-white/70 transition-colors underline underline-offset-2"
           >
-            dev: jacob.majors
+            Skip login (dev)
           </button>
         )}
       </div>

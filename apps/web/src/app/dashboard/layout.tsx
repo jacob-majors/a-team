@@ -9,17 +9,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/sign-in')
+  // Allow dev bypass cookie to skip auth
+  const { cookies: cookieStore } = await import('next/headers')
+  const devBypass = cookieStore().get('dev_bypass')?.value === '1'
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('name, email, avatar_url')
-    .eq('id', user.id)
-    .single()
+  if (!user && !devBypass) redirect('/sign-in')
 
-  const userName     = profile?.name      ?? user.email ?? 'User'
-  const userEmail    = profile?.email     ?? user.email ?? ''
-  const userAvatarUrl = profile?.avatar_url ?? user.user_metadata?.['avatar_url'] ?? undefined
+  let userName = 'Dev User'
+  let userEmail = ''
+  let userAvatarUrl: string | undefined = undefined
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('name, email, avatar_url')
+      .eq('id', user.id)
+      .single()
+    userName     = profile?.name      ?? user.email ?? 'User'
+    userEmail    = profile?.email     ?? user.email ?? ''
+    userAvatarUrl = profile?.avatar_url ?? user.user_metadata?.['avatar_url'] ?? undefined
+  }
 
   return (
     <RoleProvider>
