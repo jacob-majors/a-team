@@ -17,11 +17,13 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
 
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || location.origin
+
   async function handleGoogle() {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: `${siteUrl}/auth/callback` },
     })
     if (error) { setError(error.message); setLoading(false) }
   }
@@ -35,7 +37,7 @@ export default function SignUpPage() {
       password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     })
     setLoading(false)

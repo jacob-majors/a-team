@@ -30,11 +30,13 @@ export default function SignInPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || location.origin
+
   async function handleGoogle() {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: `${siteUrl}/auth/callback` },
     })
     if (error) { setError(error.message); setLoading(false) }
   }
