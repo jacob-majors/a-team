@@ -35,15 +35,8 @@
     @apply antialiased;
   }
 
-  /* Smooth theme transitions */
-  *, *::before, *::after {
-    transition-property: background-color, border-color, color;
-    transition-duration: 150ms;
-    transition-timing-function: ease;
-  }
-
-  /* But don't animate transforms/opacity (breaks animations) */
-  [data-no-transition], [data-no-transition] * {
-    transition: none !important;
+  /* Smooth theme transitions — only on theme switch, not on every interaction */
+  .theme-transitioning, .theme-transitioning * {
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease !important;
   }
 }

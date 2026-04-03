@@ -3,6 +3,49 @@
 -- Run in Supabase → SQL Editor → New Query
 -- ================================================================
 
+-- ── Create roster_members table if it doesn't exist ──────────────
+create table if not exists public.roster_members (
+  id                 uuid primary key default gen_random_uuid(),
+  first_name         text not null,
+  last_name          text,
+  full_name          text not null,
+  email              text,
+  phone              text,
+  grade              text,
+  role               text not null default 'athlete',
+  other_role         text,
+  is_admin           boolean not null default false,
+  is_guardian        boolean not null default false,
+  is_racer           boolean not null default false,
+  is_hs_athlete      boolean not null default false,
+  is_dev_athlete     boolean not null default false,
+  is_grit            boolean not null default false,
+  is_team_captain    boolean not null default false,
+  is_windsor_hs      boolean not null default false,
+  has_training_peaks boolean not null default false,
+  is_child           boolean not null default false,
+  dues_paid          boolean not null default false,
+  dues_amount        numeric,
+  pit_zone_status    text,
+  notes              text,
+  created_at         timestamptz not null default now()
+);
+
+alter table public.roster_members enable row level security;
+
+do $$ begin
+  create policy "roster: auth read"    on public.roster_members for select using (auth.uid() is not null);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create policy "roster: staff write"  on public.roster_members for insert with check (true);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create policy "roster: staff update" on public.roster_members for update using (true);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create policy "roster: staff del"    on public.roster_members for delete using (true);
+exception when duplicate_object then null; end $$;
+
 -- ── Calendar Events ──────────────────────────────────────────────
 -- Uses the first user in auth.users as created_by.
 -- If no users exist yet, sign in once first then re-run.

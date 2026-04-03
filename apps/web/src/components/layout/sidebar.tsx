@@ -9,18 +9,17 @@ import {
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
-import { ThemeToggle } from '@/components/theme/toggle'
 
 const navItems = [
-  { href: '/dashboard',              label: 'Calendar',      icon: CalendarDays,  exact: true },
-  { href: '/dashboard/roster',       label: 'Roster',        icon: Users },
-  { href: '/dashboard/chat',         label: 'Chat',          icon: MessageSquare },
-  { href: '/dashboard/announcements',label: 'Announcements', icon: Megaphone },
-  { href: '/dashboard/documents',    label: 'Documents',     icon: FileText },
-  { href: '/dashboard/volunteers',   label: 'Volunteers',    icon: HandHeart },
-  { href: '/dashboard/photos',       label: 'Photos',        icon: Camera },
-  { href: '/dashboard/database',     label: 'Database',      icon: Database },
-  { href: '/dashboard/settings',     label: 'Settings',      icon: Settings },
+  { href: '/dashboard',               label: 'Calendar',      icon: CalendarDays,  exact: true },
+  { href: '/dashboard/roster',        label: 'Roster',        icon: Users },
+  { href: '/dashboard/chat',          label: 'Chat',          icon: MessageSquare },
+  { href: '/dashboard/announcements', label: 'Announcements', icon: Megaphone },
+  { href: '/dashboard/documents',     label: 'Documents',     icon: FileText },
+  { href: '/dashboard/volunteers',    label: 'Volunteers',    icon: HandHeart },
+  { href: '/dashboard/photos',        label: 'Photos',        icon: Camera },
+  { href: '/dashboard/database',      label: 'Database',      icon: Database },
+  { href: '/dashboard/settings',      label: 'Settings',      icon: Settings },
 ]
 
 interface SidebarProps {
@@ -41,15 +40,15 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden md:flex md:flex-col md:w-64 bg-[rgb(var(--surface))] border-r border-[rgb(var(--border))] shrink-0">
+    <aside className="hidden md:flex md:flex-col md:w-64 bg-brand-700 shrink-0">
       {/* Logo */}
-      <div className="flex items-center px-5 py-4 border-b border-[rgb(var(--border))]">
+      <div className="flex items-center justify-center px-5 py-5 border-b border-brand-600">
         <Image
           src="/logo.png"
           alt="A-Team Annadel Composite"
-          width={120}
-          height={40}
-          className="object-contain h-10 w-auto dark:brightness-110"
+          width={160}
+          height={54}
+          className="object-contain h-14 w-auto brightness-0 invert"
         />
       </div>
 
@@ -64,20 +63,19 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 active
-                  ? 'bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400'
-                  : 'text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--bg-secondary))] hover:text-[rgb(var(--text))]'
+                  ? 'bg-white/15 text-white'
+                  : 'text-brand-100 hover:bg-white/10 hover:text-white'
               )}
             >
-              <Icon className={cn('h-5 w-5', active ? 'text-brand-500 dark:text-brand-400' : 'text-[rgb(var(--text-muted))]')} />
+              <Icon className={cn('h-5 w-5 shrink-0', active ? 'text-white' : 'text-brand-200')} />
               {label}
             </Link>
           )
         })}
       </nav>
 
-      {/* Theme toggle + user */}
-      <div className="border-t border-[rgb(var(--border))] px-4 py-3 space-y-3">
-        <ThemeToggle />
+      {/* User section */}
+      <div className="border-t border-brand-600 px-4 py-3">
         <div className="flex items-center gap-3">
           {userAvatarUrl ? (
             <Image
@@ -85,20 +83,20 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
               alt={userName}
               width={32}
               height={32}
-              className="h-8 w-8 rounded-full object-cover"
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-400"
             />
           ) : (
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-950 text-xs font-bold text-brand-700 dark:text-brand-400">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500 ring-2 ring-brand-400 text-xs font-bold text-white">
               {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-[rgb(var(--text))]">{userName}</p>
-            <p className="truncate text-xs text-[rgb(var(--text-muted))]">{userEmail}</p>
+            <p className="truncate text-sm font-medium text-white">{userName}</p>
+            <p className="truncate text-xs text-brand-200">{userEmail}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="rounded-md p-1.5 text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--bg-secondary))] hover:text-[rgb(var(--text))]"
+            className="rounded-md p-1.5 text-brand-200 hover:bg-white/10 hover:text-white transition-colors"
             title="Sign out"
           >
             <LogOut className="h-4 w-4" />
