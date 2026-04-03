@@ -9,29 +9,33 @@ import {
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useRole } from '@/components/layout/role-switcher'
 
-const navItems = [
-  { href: '/dashboard',               label: 'Calendar',      icon: CalendarDays,  exact: true },
-  { href: '/dashboard/roster',        label: 'Roster',        icon: Users },
-  { href: '/dashboard/chat',          label: 'Chat',          icon: MessageSquare },
-  { href: '/dashboard/announcements', label: 'Announcements', icon: Megaphone },
-  { href: '/dashboard/documents',     label: 'Documents',     icon: FileText },
-  { href: '/dashboard/volunteers',    label: 'Volunteers',    icon: HandHeart },
-  { href: '/dashboard/photos',        label: 'Photos',        icon: Camera },
-  { href: '/dashboard/database',      label: 'Database',      icon: Database },
-  { href: '/dashboard/settings',      label: 'Settings',      icon: Settings },
+const ALL_NAV = [
+  { href: '/dashboard',               label: 'Calendar',      icon: CalendarDays,  exact: true, roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/roster',        label: 'Roster',        icon: Users,                      roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/chat',          label: 'Chat',          icon: MessageSquare,              roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/announcements', label: 'Announcements', icon: Megaphone,                  roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/documents',     label: 'Documents',     icon: FileText,                   roles: ['admin','coach'] },
+  { href: '/dashboard/volunteers',    label: 'Volunteers',    icon: HandHeart,                  roles: ['admin','coach','parent'] },
+  { href: '/dashboard/photos',        label: 'Photos',        icon: Camera,                     roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/database',      label: 'Database',      icon: Database,                   roles: ['admin'] },
+  { href: '/dashboard/settings',      label: 'Settings',      icon: Settings,                   roles: ['admin','coach','athlete','parent'] },
 ]
 
 interface SidebarProps {
   userName: string
-  userEmail: string
+  userRole: string
   userAvatarUrl?: string
 }
 
-export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
+export function Sidebar({ userName, userRole, userAvatarUrl }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { role } = useRole()
+
+  const navItems = ALL_NAV.filter(item => item.roles.includes(role))
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -39,8 +43,10 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
     router.refresh()
   }
 
+  const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+
   return (
-    <aside className="hidden md:flex md:flex-col md:w-64 bg-brand-700 shrink-0">
+    <aside className="hidden md:flex md:flex-col md:w-60 bg-brand-700 shrink-0">
       {/* Logo */}
       <div className="flex items-center justify-center px-5 py-5 border-b border-brand-600">
         <Image
@@ -62,9 +68,7 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
               href={href}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                active
-                  ? 'bg-white/15 text-white'
-                  : 'text-brand-100 hover:bg-white/10 hover:text-white'
+                active ? 'bg-white/15 text-white' : 'text-brand-100 hover:bg-white/10 hover:text-white'
               )}
             >
               <Icon className={cn('h-5 w-5 shrink-0', active ? 'text-white' : 'text-brand-200')} />
@@ -74,31 +78,22 @@ export function Sidebar({ userName, userEmail, userAvatarUrl }: SidebarProps) {
         })}
       </nav>
 
-      {/* User section */}
-      <div className="border-t border-brand-600 px-4 py-3">
+      {/* User */}
+      <div className="border-t border-brand-600 px-4 py-4">
         <div className="flex items-center gap-3">
           {userAvatarUrl ? (
-            <Image
-              src={userAvatarUrl}
-              alt={userName}
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-400"
-            />
+            <Image src={userAvatarUrl} alt={userName} width={40} height={40}
+              className="h-10 w-10 rounded-full object-cover ring-2 ring-brand-400" />
           ) : (
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500 ring-2 ring-brand-400 text-xs font-bold text-white">
-              {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 ring-2 ring-brand-400 text-sm font-bold text-white">
+              {initials}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{userName}</p>
-            <p className="truncate text-xs text-brand-200">{userEmail}</p>
+            <p className="truncate text-sm font-semibold text-white">{userName}</p>
+            <p className="truncate text-xs text-brand-200 capitalize">{userRole}</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="rounded-md p-1.5 text-brand-200 hover:bg-white/10 hover:text-white transition-colors"
-            title="Sign out"
-          >
+          <button onClick={handleSignOut} className="rounded-md p-1.5 text-brand-200 hover:bg-white/10 hover:text-white transition-colors" title="Sign out">
             <LogOut className="h-4 w-4" />
           </button>
         </div>

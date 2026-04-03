@@ -720,38 +720,37 @@ export default function ChatPage() {
               )}
 
               <div className="flex items-end gap-2">
-                <div className="flex-1 relative">
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={e => handleInputChange(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={`Message #${activeChannel.name}… (@ to mention)`}
-                    rows={1}
-                    className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-4 py-2.5 pr-10 text-sm text-[rgb(var(--text))] placeholder-[rgb(var(--text-muted))] focus:border-brand-400 focus:bg-[rgb(var(--surface))] focus:outline-none focus:ring-1 focus:ring-brand-400 resize-none"
-                    style={{ minHeight: '2.75rem', maxHeight: '8rem' }}
-                    onInput={e => {
-                      const t = e.currentTarget
-                      t.style.height = 'auto'
-                      t.style.height = Math.min(t.scrollHeight, 128) + 'px'
-                    }}
-                  />
-                  <button
-                    onClick={() => { setInput(v => v + '@'); inputRef.current?.focus(); setMentionQuery('') }}
-                    className="absolute right-3 bottom-2.5 text-[rgb(var(--text-muted))] hover:text-brand-500"
-                  >
-                    <AtSign className="h-4 w-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setInput(v => v + '@'); inputRef.current?.focus(); setMentionQuery('') }}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-muted))] hover:text-brand-500 hover:border-brand-400 transition-colors"
+                  title="Mention someone"
+                >
+                  <AtSign className="h-4 w-4" />
+                </button>
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={e => handleInputChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`Message #${activeChannel.name}…`}
+                  rows={1}
+                  className="flex-1 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-4 py-2.5 text-sm text-[rgb(var(--text))] placeholder-[rgb(var(--text-muted))] focus:border-brand-400 focus:bg-[rgb(var(--surface))] focus:outline-none focus:ring-1 focus:ring-brand-400 resize-none"
+                  style={{ minHeight: '2.75rem', maxHeight: '8rem' }}
+                  onInput={e => {
+                    const t = e.currentTarget
+                    t.style.height = 'auto'
+                    t.style.height = Math.min(t.scrollHeight, 128) + 'px'
+                  }}
+                />
                 <button
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-40 transition-colors"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-40 transition-colors"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">Enter to send · Shift+Enter for new line · @ to mention</p>
+              <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">Enter to send · Shift+Enter for new line</p>
             </div>
           </>
         ) : (

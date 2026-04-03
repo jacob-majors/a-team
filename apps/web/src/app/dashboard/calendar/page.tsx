@@ -118,28 +118,30 @@ export default function CalendarPage() {
   const inputCls = 'w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-3 py-2 text-sm text-[rgb(var(--text))] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500'
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[rgb(var(--text))]">Calendar</h1>
-          <p className="text-sm text-[rgb(var(--text-muted))]">Click any day to add an event</p>
+    <div className="-mx-4 -my-6 sm:-mx-6 lg:-mx-8 flex flex-col" style={{ height: 'calc(100vh - 3.5rem)' }}>
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] shrink-0">
+        <div className="flex items-center gap-6">
+          <div>
+            <h1 className="text-xl font-bold text-[rgb(var(--text))]">Calendar</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {(Object.entries(TYPE_STYLES) as [EventType, typeof TYPE_STYLES[EventType]][]).map(([type, s]) => (
+              <div key={type} className="flex items-center gap-1.5 text-xs text-[rgb(var(--text-muted))] capitalize">
+                <span className={`h-2 w-2 rounded-full ${s.dot}`} />{type}
+              </div>
+            ))}
+          </div>
         </div>
         <button onClick={() => { setForm({...EMPTY_FORM}); setErrors({}); setShowCreate(true) }}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700">
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
           <Plus className="h-4 w-4" /> Add Event
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-4">
-        {(Object.entries(TYPE_STYLES) as [EventType, typeof TYPE_STYLES[EventType]][]).map(([type, s]) => (
-          <div key={type} className="flex items-center gap-1.5 text-sm text-[rgb(var(--text-muted))] capitalize">
-            <span className={`h-2.5 w-2.5 rounded-full ${s.dot}`} />{type}
-          </div>
-        ))}
-      </div>
-
-      <div className="rounded-xl bg-[rgb(var(--surface))] border border-[rgb(var(--border))] shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-[rgb(var(--border))] px-6 py-4">
+      <div className="flex-1 overflow-hidden flex flex-col bg-[rgb(var(--surface))]">
+        {/* Month nav */}
+        <div className="flex items-center justify-between px-6 py-3 border-b border-[rgb(var(--border))] shrink-0">
           <button onClick={prevMonth} className="rounded-lg p-1.5 hover:bg-[rgb(var(--bg-secondary))]">
             <ChevronLeft className="h-5 w-5 text-[rgb(var(--text))]" />
           </button>
@@ -148,36 +150,36 @@ export default function CalendarPage() {
             <ChevronRight className="h-5 w-5 text-[rgb(var(--text))]" />
           </button>
         </div>
-        <div className="grid grid-cols-7 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))]">
+        <div className="grid grid-cols-7 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] shrink-0">
           {DAYS.map(d => <div key={d} className="py-2 text-center text-xs font-medium text-[rgb(var(--text-muted))]">{d}</div>)}
         </div>
         {loading ? (
-          <div className="flex h-48 items-center justify-center">
+          <div className="flex flex-1 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-7 divide-x divide-y divide-[rgb(var(--border))]">
+          <div className="flex-1 grid grid-cols-7 divide-x divide-y divide-[rgb(var(--border))] overflow-hidden" style={{ gridTemplateRows: 'repeat(6, 1fr)' }}>
             {days.map(({ date, current }, i) => {
               const ds = toDateStr(date)
               const dayEvents = events.filter(ev => ev.date === ds)
               const isToday = ds === toDateStr(today)
               return (
-                <div key={i} onClick={() => current && handleDayClick(date)}
-                  className={cn('min-h-[80px] p-2 transition-colors',
-                    current ? 'cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-950/30' : 'bg-[rgb(var(--bg-secondary))]',
-                    !current && 'opacity-40')}>
+                <div key={i}
+                  onClick={() => { if (current) { setForm({...EMPTY_FORM, date: toDateStr(date)}); setErrors({}); setShowCreate(true) } }}
+                  className={cn('p-2 overflow-hidden transition-colors',
+                    current ? 'cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-950/30' : 'bg-[rgb(var(--bg-secondary))] opacity-40')}>
                   <span className={cn('inline-flex h-7 w-7 items-center justify-center rounded-full text-sm',
                     isToday ? 'bg-brand-600 text-white font-bold' : 'text-[rgb(var(--text))]')}>
                     {date.getDate()}
                   </span>
                   <div className="mt-1 space-y-0.5">
-                    {dayEvents.slice(0,2).map(ev => (
+                    {dayEvents.slice(0, 3).map(ev => (
                       <button key={ev.id} onClick={e => { e.stopPropagation(); setSelected(ev) }}
                         className={cn('w-full truncate rounded px-1.5 py-0.5 text-left text-xs font-medium', TYPE_STYLES[ev.type].badge)}>
                         {ev.title}
                       </button>
                     ))}
-                    {dayEvents.length > 2 && <p className="text-xs text-[rgb(var(--text-muted))] px-1">+{dayEvents.length-2} more</p>}
+                    {dayEvents.length > 3 && <p className="text-xs text-[rgb(var(--text-muted))] px-1">+{dayEvents.length - 3} more</p>}
                   </div>
                 </div>
               )
