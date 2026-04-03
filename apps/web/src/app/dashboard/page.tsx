@@ -1,124 +1,286 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { CalendarDays, Users, Megaphone, MessageSquare, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, Plus, X, MapPin, Clock, Loader2 } from 'lucide-react'
+import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
 
-interface UpcomingEvent {
+type EventType = 'practice' | 'race' | 'meeting'
+
+interface CalEvent {
   id: string
   title: string
-  type: string
-  start_at: string
-  location: string | null
+  type: EventType
+  date: string
+  startTime: string
+  endTime: string
+  location: string
+  description: string
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  practice: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-  race:     'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-  meeting:  'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-muted))]',
+const TYPE_STYLES: Record<EventType, { dot: string; badge: string; header: string }> = {
+  practice: { dot: 'bg-blue-500',  badge: 'bg-blue-100 text-blue-700',   header: 'from-blue-500 to-blue-600' },
+  race:     { dot: 'bg-green-500', badge: 'bg-green-100 text-green-700', header: 'from-green-500 to-green-600' },
+  meeting:  { dot: 'bg-gray-400',  badge: 'bg-gray-100 text-gray-700',   header: 'from-gray-400 to-gray-500' },
 }
 
-export default function DashboardPage() {
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function getCalendarDays(year: number, month: number) {
+  const firstDay    = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const daysInPrev  = new Date(year, month, 0).getDate()
+  const days: { date: Date; current: boolean }[] = []
+  for (let i = firstDay - 1; i >= 0; i--)
+    days.push({ date: new Date(year, month - 1, daysInPrev - i), current: false })
+  for (let d = 1; d <= daysInMonth; d++)
+    days.push({ date: new Date(year, month, d), current: true })
+  const remaining = 42 - days.length
+  for (let d = 1; d <= remaining; d++)
+    days.push({ date: new Date(year, month + 1, d), current: false })
+  return days
+}
+
+function toDateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+const EMPTY_FORM = { title: '', type: 'practice' as EventType, date: '', startTime: '09:00', endTime: '11:00', location: '', description: '' }
+
+export default function CalendarPage() {
   const supabase = createClient()
-  const [firstName, setFirstName] = useState('')
-  const [events, setEvents] = useState<UpcomingEvent[]>([])
+  const today = new Date()
+  const [year, setYear]         = useState(today.getFullYear())
+  const [month, setMonth]       = useState(today.getMonth())
+  const [events, setEvents]     = useState<CalEvent[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [selected, setSelected] = useState<CalEvent | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
+  const [form, setForm]         = useState({ ...EMPTY_FORM })
+  const [errors, setErrors]     = useState<Record<string, string>>({})
+  const [userId, setUserId]     = useState<string | null>(null)
+  const [saving, setSaving]     = useState(false)
 
   useEffect(() => {
-    const devBypass = document.cookie.includes('dev_bypass=1')
-    if (devBypass) {
-      setFirstName('Jacob')
-    } else {
-      supabase.auth.getUser().then(({ data }) => {
-        if (data.user) {
-          supabase.from('users').select('name').eq('id', data.user.id).single().then(({ data: u }) => {
-            if (u?.name) setFirstName(u.name.split(' ')[0]!)
-          })
-        }
-      })
-    }
-
-    const now = new Date().toISOString()
-    supabase.from('events')
-      .select('id, title, type, start_at, location')
-      .gte('start_at', now)
-      .order('start_at')
-      .limit(5)
-      .then(({ data }) => { if (data) setEvents(data) })
+    supabase.auth.getUser().then(({ data }) => { if (data.user) setUserId(data.user.id) })
+    loadEvents()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  async function loadEvents() {
+    setLoading(true)
+    const { data } = await supabase.from('events').select('id, title, type, start_at, end_at, location, description').order('start_at')
+    setLoading(false)
+    if (!data) return
+    setEvents(data.map((row: any) => {
+      const start = new Date(row.start_at)
+      const end   = new Date(row.end_at)
+      return { id: row.id, title: row.title, type: row.type as EventType,
+        date: toDateStr(start), startTime: start.toTimeString().slice(0,5),
+        endTime: end.toTimeString().slice(0,5), location: row.location ?? '', description: row.description ?? '' }
+    }))
+  }
+
+  function prevMonth() { if (month === 0) { setMonth(11); setYear(y => y-1) } else setMonth(m => m-1) }
+  function nextMonth() { if (month === 11) { setMonth(0);  setYear(y => y+1) } else setMonth(m => m+1) }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    const errs: Record<string,string> = {}
+    if (!form.title.trim()) errs['title'] = 'Title is required'
+    if (!form.date) errs['date'] = 'Date is required'
+    if (Object.keys(errs).length) { setErrors(errs); return }
+    if (!userId) return
+    setSaving(true)
+    const startAt = new Date(`${form.date}T${form.startTime}`)
+    const endAt   = new Date(`${form.date}T${form.endTime}`)
+    const { data, error } = await supabase.from('events').insert({
+      id: crypto.randomUUID(), title: form.title, type: form.type,
+      start_at: startAt.toISOString(), end_at: endAt.toISOString(),
+      location: form.location || null, description: form.description || null, created_by: userId,
+    }).select().single()
+    setSaving(false)
+    if (!error && data) {
+      setEvents(prev => [...prev, { id: data.id, title: data.title, type: data.type,
+        date: form.date, startTime: form.startTime, endTime: form.endTime,
+        location: form.location, description: form.description }])
+      setShowCreate(false); setForm({ ...EMPTY_FORM })
+    }
+  }
+
+  async function handleDelete(id: string) {
+    await supabase.from('events').delete().eq('id', id)
+    setEvents(prev => prev.filter(ev => ev.id !== id)); setSelected(null)
+  }
+
+  const days = getCalendarDays(year, month)
+  const inputCls = 'w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-3 py-2 text-sm text-[rgb(var(--text))] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500'
 
   return (
-    <div className="space-y-8">
-      {/* Welcome */}
-      <div>
-        <h1 className="text-2xl font-bold text-[rgb(var(--text))]">
-          {greeting}{firstName ? `, ${firstName}` : ''}! 👋
-        </h1>
-        <p className="text-sm text-[rgb(var(--text-muted))] mt-1">Welcome to A-Team — Annadel Composite MTB</p>
-      </div>
-
-      {/* Quick nav */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {[
-          { label: 'Calendar',      href: '/dashboard',               icon: CalendarDays, color: 'text-brand-600', bg: 'bg-brand-50 dark:bg-brand-950/50' },
-          { label: 'Roster',        href: '/dashboard/roster',        icon: Users,        color: 'text-blue-600',  bg: 'bg-blue-50 dark:bg-blue-950/30' },
-          { label: 'Chat',          href: '/dashboard/chat',          icon: MessageSquare,color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/30' },
-          { label: 'Announcements', href: '/dashboard/announcements', icon: Megaphone,    color: 'text-purple-600',bg: 'bg-purple-50 dark:bg-purple-950/30' },
-        ].map(({ label, href, icon: Icon, color, bg }) => (
-          <Link key={label} href={href}
-            className="rounded-xl bg-[rgb(var(--surface))] border border-[rgb(var(--border))] p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md">
-            <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg ${bg}`}>
-              <Icon className={`h-5 w-5 ${color}`} />
-            </div>
-            <p className="font-semibold text-[rgb(var(--text))]">{label}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* Upcoming events */}
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[rgb(var(--text))]">Upcoming Events</h2>
-          <Link href="/dashboard" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
-            View calendar <ChevronRight className="h-4 w-4" />
-          </Link>
+    <div className="-mx-4 -my-6 sm:-mx-6 lg:-mx-8 flex flex-col" style={{ height: 'calc(100vh - 3.5rem)' }}>
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] shrink-0">
+        <div className="flex items-center gap-6">
+          <div>
+            <h1 className="text-xl font-bold text-[rgb(var(--text))]">Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {(Object.entries(TYPE_STYLES) as [EventType, typeof TYPE_STYLES[EventType]][]).map(([type, s]) => (
+              <div key={type} className="flex items-center gap-1.5 text-xs text-[rgb(var(--text-muted))] capitalize">
+                <span className={`h-2 w-2 rounded-full ${s.dot}`} />{type}
+              </div>
+            ))}
+          </div>
         </div>
+        <button onClick={() => { setForm({...EMPTY_FORM}); setErrors({}); setShowCreate(true) }}
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+          <Plus className="h-4 w-4" /> Add Event
+        </button>
+      </div>
 
-        {events.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-10 text-center">
-            <CalendarDays className="mx-auto h-10 w-10 text-[rgb(var(--border))]" />
-            <p className="mt-3 font-medium text-[rgb(var(--text-muted))]">No upcoming events</p>
-            <p className="text-sm text-[rgb(var(--text-muted))] opacity-60 mt-1">Run the seed SQL or add events in the Calendar</p>
+      <div className="flex-1 overflow-hidden flex flex-col bg-[rgb(var(--surface))]">
+        {/* Month nav */}
+        <div className="flex items-center justify-between px-6 py-3 border-b border-[rgb(var(--border))] shrink-0">
+          <button onClick={prevMonth} className="rounded-lg p-1.5 hover:bg-[rgb(var(--bg-secondary))]">
+            <ChevronLeft className="h-5 w-5 text-[rgb(var(--text))]" />
+          </button>
+          <h2 className="font-semibold text-[rgb(var(--text))] text-lg">{MONTHS[month]} {year}</h2>
+          <button onClick={nextMonth} className="rounded-lg p-1.5 hover:bg-[rgb(var(--bg-secondary))]">
+            <ChevronRight className="h-5 w-5 text-[rgb(var(--text))]" />
+          </button>
+        </div>
+        <div className="grid grid-cols-7 border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] shrink-0">
+          {DAYS.map(d => <div key={d} className="py-2 text-center text-xs font-medium text-[rgb(var(--text-muted))]">{d}</div>)}
+        </div>
+        {loading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
           </div>
         ) : (
-          <div className="space-y-2">
-            {events.map(ev => {
-              const d = new Date(ev.start_at)
+          <div className="flex-1 grid grid-cols-7 divide-x divide-y divide-[rgb(var(--border))] overflow-hidden" style={{ gridTemplateRows: 'repeat(6, 1fr)' }}>
+            {days.map(({ date, current }, i) => {
+              const ds = toDateStr(date)
+              const dayEvents = events.filter(ev => ev.date === ds)
+              const isToday = ds === toDateStr(today)
               return (
-                <Link key={ev.id} href="/dashboard"
-                  className="flex items-center gap-4 rounded-xl bg-[rgb(var(--surface))] border border-[rgb(var(--border))] px-4 py-3 hover:border-brand-300 transition">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/50">
-                    <span className="text-xs font-medium text-brand-600 dark:text-brand-300 uppercase">{d.toLocaleDateString('en',{month:'short'})}</span>
-                    <span className="text-lg font-bold text-brand-700 dark:text-brand-200 leading-none">{d.getDate()}</span>
+                <div key={i}
+                  onClick={() => { if (current) { setForm({...EMPTY_FORM, date: toDateStr(date)}); setErrors({}); setShowCreate(true) } }}
+                  className={cn('p-2 overflow-hidden transition-colors',
+                    current ? 'cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-950/30' : 'bg-[rgb(var(--bg-secondary))] opacity-40')}>
+                  <span className={cn('inline-flex h-7 w-7 items-center justify-center rounded-full text-sm',
+                    isToday ? 'bg-brand-600 text-white font-bold' : 'text-[rgb(var(--text))]')}>
+                    {date.getDate()}
+                  </span>
+                  <div className="mt-1 space-y-0.5">
+                    {dayEvents.slice(0, 3).map(ev => (
+                      <button key={ev.id} onClick={e => { e.stopPropagation(); setSelected(ev) }}
+                        className={cn('w-full truncate rounded px-1.5 py-0.5 text-left text-xs font-medium', TYPE_STYLES[ev.type].badge)}>
+                        {ev.title}
+                      </button>
+                    ))}
+                    {dayEvents.length > 3 && <p className="text-xs text-[rgb(var(--text-muted))] px-1">+{dayEvents.length - 3} more</p>}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-[rgb(var(--text))] truncate">{ev.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${TYPE_COLORS[ev.type] ?? TYPE_COLORS.meeting}`}>{ev.type}</span>
-                      {ev.location && <span className="text-xs text-[rgb(var(--text-muted))] truncate">{ev.location}</span>}
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[rgb(var(--text-muted))] shrink-0" />
-                </Link>
+                </div>
               )
             })}
           </div>
         )}
       </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setSelected(null)}>
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-[rgb(var(--surface))] shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className={cn('bg-gradient-to-r px-6 py-6 text-white', TYPE_STYLES[selected.type].header)}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-medium capitalize">{selected.type}</span>
+                  <h3 className="mt-2 text-xl font-bold">{selected.title}</h3>
+                </div>
+                <button onClick={() => setSelected(null)} className="rounded-full p-1 hover:bg-white/20"><X className="h-5 w-5" /></button>
+              </div>
+            </div>
+            <div className="p-6 space-y-3">
+              <div className="flex items-center gap-2 text-sm text-[rgb(var(--text-muted))]">
+                <Clock className="h-4 w-4" />{selected.date} · {selected.startTime}–{selected.endTime}
+              </div>
+              {selected.location && <div className="flex items-center gap-2 text-sm text-[rgb(var(--text-muted))]"><MapPin className="h-4 w-4" />{selected.location}</div>}
+              {selected.description && <p className="text-sm text-[rgb(var(--text))] leading-relaxed">{selected.description}</p>}
+              <div className="border-t border-[rgb(var(--border))] pt-4">
+                <p className="mb-3 text-sm font-medium text-[rgb(var(--text))]">Are you going?</p>
+                <div className="flex gap-2">
+                  {(['yes','maybe','no'] as const).map(s => (
+                    <button key={s} className={cn('flex-1 rounded-lg border-2 py-2 text-sm font-medium capitalize transition',
+                      s==='yes' && 'border-green-400 bg-green-50 text-green-700', s==='maybe' && 'border-yellow-400 bg-yellow-50 text-yellow-700',
+                      s==='no'  && 'border-red-300 bg-red-50 text-red-600')}>
+                      {s==='yes' ? '✓ Going' : s==='maybe' ? '? Maybe' : "✕ Can't go"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button onClick={() => handleDelete(selected.id)} className="w-full rounded-lg border border-red-200 py-2 text-sm font-medium text-red-500 hover:bg-red-50">Delete Event</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShowCreate(false)}>
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-[rgb(var(--surface))] shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[rgb(var(--border))] px-6 py-4">
+              <h3 className="text-lg font-semibold text-[rgb(var(--text))]">New Event</h3>
+              <button onClick={() => setShowCreate(false)} className="rounded-full p-1 hover:bg-[rgb(var(--bg-secondary))]"><X className="h-5 w-5 text-[rgb(var(--text-muted))]" /></button>
+            </div>
+            <form onSubmit={handleCreate} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Title *</label>
+                <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
+                  className={cn(inputCls, errors['title'] && 'border-red-400')} placeholder="e.g. Thursday Practice" />
+                {errors['title'] && <p className="mt-1 text-xs text-red-500">{errors['title']}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Type</label>
+                <select value={form.type} onChange={e => setForm(f => ({...f, type: e.target.value as EventType}))} className={inputCls}>
+                  <option value="practice">Practice</option><option value="race">Race</option><option value="meeting">Meeting</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Date *</label>
+                <input type="date" value={form.date} onChange={e => setForm(f => ({...f, date: e.target.value}))}
+                  className={cn(inputCls, errors['date'] && 'border-red-400')} />
+                {errors['date'] && <p className="mt-1 text-xs text-red-500">{errors['date']}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Start</label>
+                  <input type="time" value={form.startTime} onChange={e => setForm(f => ({...f, startTime: e.target.value}))} className={inputCls} /></div>
+                <div><label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">End</label>
+                  <input type="time" value={form.endTime} onChange={e => setForm(f => ({...f, endTime: e.target.value}))} className={inputCls} /></div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Location</label>
+                <input value={form.location} onChange={e => setForm(f => ({...f, location: e.target.value}))} className={inputCls} placeholder="e.g. Annadel State Park" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Description</label>
+                <textarea value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))}
+                  rows={3} className={cn(inputCls, 'resize-none')} placeholder="Optional details..." />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowCreate(false)}
+                  className="flex-1 rounded-lg border border-[rgb(var(--border))] py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-[rgb(var(--bg-secondary))]">Cancel</button>
+                <button type="submit" disabled={saving}
+                  className="flex-1 rounded-lg bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                  {saving ? 'Saving…' : 'Create Event'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
+
+  function handleDayClick(date: Date) {
+    setForm({ ...EMPTY_FORM, date: toDateStr(date) }); setErrors({}); setShowCreate(true)
+  }
 }

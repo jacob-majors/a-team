@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRole } from '@/components/layout/role-switcher'
 
 const ALL_NAV = [
-  { href: '/dashboard',               label: 'Calendar',      icon: CalendarDays,  exact: true, roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard',               label: 'Dashboard',     icon: CalendarDays,  exact: true, roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/roster',        label: 'Roster',        icon: Users,                      roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/chat',          label: 'Chat',          icon: MessageSquare,              roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/announcements', label: 'Announcements', icon: Megaphone,                  roles: ['admin','coach','athlete','parent'] },
@@ -52,9 +52,9 @@ export function Sidebar({ userName, userRole, userAvatarUrl }: SidebarProps) {
         <Image
           src="/logo.png"
           alt="A-Team Annadel Composite"
-          width={160}
-          height={54}
-          className="object-contain h-14 w-auto brightness-0 invert"
+          width={180}
+          height={64}
+          className="object-contain h-16 w-auto brightness-0 invert"
         />
       </div>
 

@@ -6,7 +6,7 @@ import { CalendarDays, Users, MessageSquare, Megaphone, MoreHorizontal } from 'l
 import { cn } from '@a-team/utils'
 
 const navItems = [
-  { href: '/dashboard',               label: 'Calendar', icon: CalendarDays,  exact: true },
+  { href: '/dashboard',               label: 'Dashboard', icon: CalendarDays, exact: true },
   { href: '/dashboard/roster',        label: 'Roster',   icon: Users },
   { href: '/dashboard/chat',          label: 'Chat',     icon: MessageSquare },
   { href: '/dashboard/announcements', label: 'News',     icon: Megaphone },
