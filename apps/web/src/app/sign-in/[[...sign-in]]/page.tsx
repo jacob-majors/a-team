@@ -1,19 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+
+const DEV_EMAIL = process.env.NEXT_PUBLIC_DEV_EMAIL ?? ''
+const DEV_PASSWORD = process.env.NEXT_PUBLIC_DEV_PASSWORD ?? ''
+const IS_DEV = process.env.NODE_ENV === 'development'
 
 export default function SignInPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Handle OAuth code that sometimes lands here instead of /auth/callback
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (!code) return
+    setLoading(true)
+    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+      if (error) { setLoading(false); setError(error.message) }
+      else { router.push('/dashboard'); router.refresh() }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleGoogle() {
     setLoading(true)
@@ -26,9 +43,17 @@ export default function SignInPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    signIn(email, password)
+  }
+
+  async function handleDevLogin() {
+    signIn(DEV_EMAIL, DEV_PASSWORD)
+  }
+
+  async function signIn(e: string, p: string) {
     setError(null)
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({ email: e, password: p })
     setLoading(false)
     if (error) {
       setError(error.message)
@@ -40,10 +65,8 @@ export default function SignInPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
-      {/* Blurred background */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-400 via-brand-600 to-brand-900" />
       <div className="absolute inset-0 backdrop-blur-sm" />
-      {/* Decorative blobs */}
       <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-brand-300/40 blur-3xl" />
       <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-brand-800/50 blur-3xl" />
 
@@ -59,6 +82,18 @@ export default function SignInPage() {
           <div className="mb-4 rounded-lg bg-red-500/20 border border-red-400/40 px-4 py-3 text-sm text-red-100">
             {error}
           </div>
+        )}
+
+        {/* Dev login — only shown in development */}
+        {IS_DEV && DEV_EMAIL && (
+          <button
+            type="button"
+            onClick={handleDevLogin}
+            disabled={loading}
+            className="mb-5 w-full rounded-lg border-2 border-dashed border-yellow-400/60 bg-yellow-400/10 py-2.5 text-sm font-semibold text-yellow-200 hover:bg-yellow-400/20 disabled:opacity-50 transition-colors"
+          >
+            ⚡ Developer Login ({DEV_EMAIL})
+          </button>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
