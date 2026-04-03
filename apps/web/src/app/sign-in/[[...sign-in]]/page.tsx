@@ -84,16 +84,6 @@ export default function SignInPage() {
           </div>
         )}
 
-        {/* Dev login — only shown in development */}
-        {IS_DEV && (
-          <button
-            type="button"
-            onClick={handleDevLogin}
-            className="mb-5 w-full rounded-lg border-2 border-dashed border-yellow-400/60 bg-yellow-400/10 py-2.5 text-sm font-semibold text-yellow-200 hover:bg-yellow-400/20 transition-colors"
-          >
-            ⚡ Developer Login (jacob.majors)
-          </button>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -154,6 +144,17 @@ export default function SignInPage() {
             Sign up
           </Link>
         </p>
+
+        {/* Discrete dev bypass */}
+        {IS_DEV && (
+          <button
+            type="button"
+            onClick={handleDevLogin}
+            className="mt-6 mx-auto block text-xs text-white/25 hover:text-white/50 transition-colors"
+          >
+            dev: jacob.majors
+          </button>
+        )}
       </div>
     </main>
   )
