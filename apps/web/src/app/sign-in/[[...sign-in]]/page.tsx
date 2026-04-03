@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-const DEV_EMAIL = process.env.NEXT_PUBLIC_DEV_EMAIL ?? ''
-const DEV_PASSWORD = process.env.NEXT_PUBLIC_DEV_PASSWORD ?? ''
 const IS_DEV = process.env.NODE_ENV === 'development'
 
 export default function SignInPage() {
@@ -46,8 +44,10 @@ export default function SignInPage() {
     signIn(email, password)
   }
 
-  async function handleDevLogin() {
-    signIn(DEV_EMAIL, DEV_PASSWORD)
+  function handleDevLogin() {
+    document.cookie = 'dev_bypass=1; path=/'
+    router.push('/dashboard')
+    router.refresh()
   }
 
   async function signIn(e: string, p: string) {
@@ -85,14 +85,13 @@ export default function SignInPage() {
         )}
 
         {/* Dev login — only shown in development */}
-        {IS_DEV && DEV_EMAIL && (
+        {IS_DEV && (
           <button
             type="button"
             onClick={handleDevLogin}
-            disabled={loading}
-            className="mb-5 w-full rounded-lg border-2 border-dashed border-yellow-400/60 bg-yellow-400/10 py-2.5 text-sm font-semibold text-yellow-200 hover:bg-yellow-400/20 disabled:opacity-50 transition-colors"
+            className="mb-5 w-full rounded-lg border-2 border-dashed border-yellow-400/60 bg-yellow-400/10 py-2.5 text-sm font-semibold text-yellow-200 hover:bg-yellow-400/20 transition-colors"
           >
-            ⚡ Developer Login ({DEV_EMAIL})
+            ⚡ Developer Login (jacob.majors)
           </button>
         )}
 
