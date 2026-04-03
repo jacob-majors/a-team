@@ -13,6 +13,13 @@ interface UpcomingEvent {
   location: string | null
 }
 
+function formatTime(t: string) {
+  const [h, m] = t.split(':').map(Number)
+  const ampm = (h ?? 0) >= 12 ? 'PM' : 'AM'
+  const hour = ((h ?? 0) % 12) || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
 const TYPE_COLORS: Record<string, string> = {
   practice: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   race:     'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
@@ -100,7 +107,7 @@ export default function DashboardHomePage() {
             {events.map(ev => {
               const d = new Date(ev.start_at)
               return (
-                <Link key={ev.id} href="/dashboard"
+                <Link key={ev.id} href={`/dashboard?date=${ev.start_at.slice(0, 10)}&eventId=${ev.id}`}
                   className="flex items-center gap-4 rounded-xl bg-[rgb(var(--surface))] border border-[rgb(var(--border))] px-4 py-3 hover:border-brand-300 transition">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/50">
                     <span className="text-xs font-medium text-brand-600 dark:text-brand-300 uppercase">{d.toLocaleDateString('en', { month: 'short' })}</span>

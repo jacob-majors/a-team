@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Plus, X, MapPin, Clock, Loader2 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -46,10 +47,18 @@ function toDateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function formatTime(t: string) {
+  const [h, m] = t.split(':').map(Number)
+  const ampm = (h ?? 0) >= 12 ? 'PM' : 'AM'
+  const hour = ((h ?? 0) % 12) || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
 const EMPTY_FORM = { title: '', type: 'practice' as EventType, date: '', startTime: '09:00', endTime: '11:00', location: '', description: '' }
 
 export default function CalendarPage() {
   const supabase = createClient()
+  const searchParams = useSearchParams()
   const today = new Date()
   const [year, setYear]         = useState(today.getFullYear())
   const [month, setMonth]       = useState(today.getMonth())
@@ -67,6 +76,22 @@ export default function CalendarPage() {
     loadEvents()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Navigate to a specific date/event from URL params (e.g. from dashboard home)
+  useEffect(() => {
+    const dateParam = searchParams.get('date')
+    const eventId = searchParams.get('eventId')
+    if (dateParam) {
+      const d = new Date(dateParam + 'T00:00:00')
+      setYear(d.getFullYear())
+      setMonth(d.getMonth())
+    }
+    if (eventId && events.length > 0) {
+      const ev = events.find(e => e.id === eventId)
+      if (ev) setSelected(ev)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, events])
 
   async function loadEvents() {
     setLoading(true)
@@ -202,7 +227,7 @@ export default function CalendarPage() {
             </div>
             <div className="p-6 space-y-3">
               <div className="flex items-center gap-2 text-sm text-[rgb(var(--text-muted))]">
-                <Clock className="h-4 w-4" />{selected.date} · {selected.startTime}–{selected.endTime}
+                <Clock className="h-4 w-4" />{selected.date} · {formatTime(selected.startTime)}–{formatTime(selected.endTime)}
               </div>
               {selected.location && <div className="flex items-center gap-2 text-sm text-[rgb(var(--text-muted))]"><MapPin className="h-4 w-4" />{selected.location}</div>}
               {selected.description && <p className="text-sm text-[rgb(var(--text))] leading-relaxed">{selected.description}</p>}

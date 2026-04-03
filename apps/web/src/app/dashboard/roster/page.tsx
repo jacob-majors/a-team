@@ -209,7 +209,7 @@ export default function RosterPage() {
   const supabase = createClient()
   const [members, setMembers] = useState<Member[]>([])
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('')
+  const [activeTab, setActiveTab] = useState<'' | 'athlete' | 'coach' | 'parent'>('')
   const [groupFilter, setGroupFilter] = useState('')
   const [selected, setSelected] = useState<Member | null>(null)
   const [showAdd, setShowAdd] = useState(false)
@@ -236,10 +236,17 @@ export default function RosterPage() {
   const filtered = members.filter(m => {
     const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.email.toLowerCase().includes(search.toLowerCase())
-    const matchRole = !roleFilter || m.role === roleFilter
+    const matchTab = !activeTab || m.role === activeTab
     const matchGroup = !groupFilter || (m[groupFilter as keyof Member] === true)
-    return matchSearch && matchRole && matchGroup
+    return matchSearch && matchTab && matchGroup
   })
+
+  const tabCounts = {
+    '': members.length,
+    athlete: members.filter(m => m.role === 'athlete').length,
+    coach: members.filter(m => m.role === 'coach').length,
+    parent: members.filter(m => m.role === 'parent').length,
+  }
 
   function handleCSVUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -404,20 +411,37 @@ export default function RosterPage() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-gray-200">
+        {([
+          { value: '' as const,        label: 'All Members' },
+          { value: 'athlete' as const, label: 'Athletes' },
+          { value: 'coach' as const,   label: 'Coaches' },
+          { value: 'parent' as const,  label: 'Parents' },
+        ] as const).map(tab => (
+          <button key={tab.value} onClick={() => setActiveTab(tab.value)}
+            className={cn(
+              'px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
+              activeTab === tab.value
+                ? 'border-brand-500 text-brand-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}>
+            {tab.label}
+            <span className={cn('ml-2 rounded-full px-1.5 py-0.5 text-xs',
+              activeTab === tab.value ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500')}>
+              {tabCounts[tab.value]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Search + group filter */}
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name..."
             className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm focus:border-brand-400 focus:outline-none" />
         </div>
-        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-400 focus:outline-none">
-          <option value="">All roles</option>
-          <option value="athlete">Athletes</option>
-          <option value="parent">Guardians</option>
-          <option value="admin">Admins</option>
-        </select>
         <select value={groupFilter} onChange={e => setGroupFilter(e.target.value)}
           className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-400 focus:outline-none">
           <option value="">All groups</option>
