@@ -123,7 +123,7 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] shrink-0">
         <div className="flex items-center gap-6">
           <div>
-            <h1 className="text-xl font-bold text-[rgb(var(--text))]">Dashboard</h1>
+            <h1 className="text-xl font-bold text-[rgb(var(--text))]">Calendar</h1>
           </div>
           <div className="flex items-center gap-4">
             {(Object.entries(TYPE_STYLES) as [EventType, typeof TYPE_STYLES[EventType]][]).map(([type, s]) => (

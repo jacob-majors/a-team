@@ -6,15 +6,16 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   CalendarDays, Users, MessageSquare, FileText, HandHeart,
-  Camera, Megaphone, LogOut, Database, Settings,
+  Camera, Megaphone, LogOut, Database, Settings, LayoutDashboard,
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRole } from '@/components/layout/role-switcher'
 
 const ALL_NAV = [
-  { href: '/dashboard',               label: 'Dashboard',     icon: CalendarDays,  exact: true, roles: ['admin','coach','athlete','parent'] },
-  { href: '/dashboard/roster',        label: 'Roster',        icon: Users,                      roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/home',          label: 'Dashboard',     icon: LayoutDashboard, exact: true, roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard',               label: 'Calendar',      icon: CalendarDays,    exact: true, roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/roster',        label: 'Roster',        icon: Users,                        roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/chat',          label: 'Chat',          icon: MessageSquare,              roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/announcements', label: 'Announcements', icon: Megaphone,                  roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/documents',     label: 'Documents',     icon: FileText,                   roles: ['admin','coach'] },
