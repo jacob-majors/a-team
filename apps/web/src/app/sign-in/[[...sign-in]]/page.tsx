@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-const IS_DEV = process.env.NODE_ENV === 'development'
+const IS_DEV = true // TODO: remove before going public
 
 export default function SignInPage() {
   const router = useRouter()
