@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -29,11 +30,25 @@ interface SidebarProps {
   userAvatarUrl?: string
 }
 
-export function Sidebar({ userName, userRole, userAvatarUrl }: SidebarProps) {
+export function Sidebar({ userName: initialUserName, userRole, userAvatarUrl }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const { role } = useRole()
+  const [userName, setUserName] = useState(initialUserName)
+
+  // Pick up name changes saved in settings (dev bypass uses localStorage)
+  useState(() => {
+    if (typeof document === 'undefined') return
+    const devBypass = document.cookie.includes('dev_bypass=1')
+    if (devBypass) {
+      const stored = localStorage.getItem('dev_profile')
+      if (stored) {
+        const p = JSON.parse(stored)
+        if (p.name) setUserName(p.name)
+      }
+    }
+  })
 
   const navItems = ALL_NAV.filter(item => item.roles.includes(role))
 

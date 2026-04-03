@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sun, Moon, Monitor, Save, User } from 'lucide-react'
+import { Sun, Moon, Monitor, Save, Check } from 'lucide-react'
 import { useTheme } from '@/components/theme/provider'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@a-team/utils'
@@ -11,6 +11,10 @@ const THEME_OPTIONS = [
   { value: 'dark',   label: 'Dark',   icon: Moon,    desc: 'Always dark' },
   { value: 'system', label: 'System', icon: Monitor, desc: 'Follows your device' },
 ] as const
+
+function getInitials(name: string) {
+  return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
+}
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
@@ -22,20 +26,44 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [isDevUser, setIsDevUser] = useState(false)
 
   useEffect(() => {
+    const devBypass = document.cookie.includes('dev_bypass=1')
+
+    if (devBypass) {
+      setIsDevUser(true)
+      // Load from localStorage for dev user
+      const stored = localStorage.getItem('dev_profile')
+      if (stored) {
+        const p = JSON.parse(stored)
+        setName(p.name ?? '')
+        setPhone(p.phone ?? '')
+        setEmailOptIn(p.email_opt_in ?? true)
+      } else {
+        setName('Jacob Majors')
+      }
+      return
+    }
+
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return
       setUserId(data.user.id)
-      const { data: profile } = await supabase
+
+      // Try to load profile
+      const { data: profile, error } = await supabase
         .from('users')
         .select('name, phone, email_opt_in')
         .eq('id', data.user.id)
         .single()
-      if (profile) {
+
+      if (!error && profile) {
         setName(profile.name ?? '')
         setPhone(profile.phone ?? '')
         setEmailOptIn(profile.email_opt_in ?? true)
+      } else {
+        // Row doesn't exist yet — pre-fill from auth metadata
+        setName(data.user.user_metadata?.['full_name'] ?? data.user.user_metadata?.['name'] ?? '')
       }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,17 +71,41 @@ export default function SettingsPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    if (!userId) return
     setSaving(true)
-    await supabase.from('users').update({
+
+    if (isDevUser) {
+      // Save to localStorage for dev bypass
+      localStorage.setItem('dev_profile', JSON.stringify({
+        name: name.trim(),
+        phone: phone.trim() || null,
+        email_opt_in: emailOptIn,
+      }))
+      setSaving(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+      return
+    }
+
+    if (!userId) { setSaving(false); return }
+
+    // Upsert so it works even if the row doesn't exist yet
+    const { error } = await supabase.from('users').upsert({
+      id: userId,
       name: name.trim(),
       phone: phone.trim() || null,
       email_opt_in: emailOptIn,
-    }).eq('id', userId)
+      // email is required — get it from auth
+      email: (await supabase.auth.getUser()).data.user?.email ?? '',
+    }, { onConflict: 'id' })
+
     setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+    if (!error) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    }
   }
+
+  const initials = getInitials(name)
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -74,7 +126,7 @@ export default function SettingsPage() {
               className={cn(
                 'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all',
                 theme === value
-                  ? 'border-brand-500 bg-brand-50 dark:bg-brand-950'
+                  ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50'
                   : 'border-[rgb(var(--border))] hover:border-[rgb(var(--text-muted))]'
               )}
             >
@@ -94,16 +146,26 @@ export default function SettingsPage() {
 
       {/* Profile */}
       <section className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6">
-        <h2 className="text-base font-semibold text-[rgb(var(--text))] mb-1 flex items-center gap-2">
-          <User className="h-4 w-4" /> Profile
-        </h2>
-        <p className="text-sm text-[rgb(var(--text-muted))] mb-5">Update your personal information.</p>
+        <h2 className="text-base font-semibold text-[rgb(var(--text))] mb-5">Profile</h2>
+
+        {/* Avatar preview */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-600 text-xl font-bold text-white ring-4 ring-brand-100 dark:ring-brand-900">
+            {initials}
+          </div>
+          <div>
+            <p className="font-semibold text-[rgb(var(--text))]">{name || 'Your Name'}</p>
+            <p className="text-sm text-[rgb(var(--text-muted))]">Your initials are shown as your avatar</p>
+          </div>
+        </div>
+
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">Display name</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
+              placeholder="Your full name"
               className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-3 py-2.5 text-sm text-[rgb(var(--text))] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </div>
@@ -132,9 +194,9 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
           >
-            <Save className="h-4 w-4" />
+            {saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
             {saving ? 'Saving…' : saved ? 'Saved!' : 'Save changes'}
           </button>
         </form>
