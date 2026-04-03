@@ -11,7 +11,8 @@ import { createClient } from '@/lib/supabase/client'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ChannelType = 'public' | 'coaches' | 'admin'
+type ChannelType = 'public' | 'coaches' | 'admin' | 'hs' | 'devo'
+type MessageTag = 'attendance' | 'question' | 'general'
 
 interface Channel {
   id: string
@@ -39,6 +40,7 @@ interface Message {
   userName: string
   avatarInitials: string
   content: string
+  tag: MessageTag
   replyTo: ReplySnippet | null
   reactions: Reaction[]
   edited: boolean
@@ -50,10 +52,46 @@ type MentionUser = { id: string; name: string }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
+// Default channels seeded on first load
+const DEFAULT_CHANNELS: { name: string; description: string; type: ChannelType }[] = [
+  { name: 'all-members',  description: 'General team chat',          type: 'public' },
+  { name: 'hs-athletes',  description: 'High school athletes only',   type: 'hs' },
+  { name: 'devo',         description: 'Development athletes only',   type: 'devo' },
+  { name: 'coaches',      description: 'Coaches only',                type: 'coaches' },
+]
+
+const ATTENDANCE_KEYWORDS = [
+  "can't make", "cant make", "won't be", "wont be", "not going to be",
+  "not making it", "missing practice", "can't attend", "cant attend",
+  "can't come", "cant come", "won't make", "wont make", "going to miss",
+  "have to miss", "not able to", "won't be there", "wont be there",
+  "not gonna make", "won't be at", "wont be at",
+]
+const QUESTION_KEYWORDS = ['?', 'anyone know', 'does anyone', 'can someone', 'what time', 'where is', 'when is', 'how do', 'who can', 'is there', 'are we', 'will there']
+
+function autoDetectTag(content: string): MessageTag {
+  const lower = content.toLowerCase()
+  if (ATTENDANCE_KEYWORDS.some(k => lower.includes(k))) return 'attendance'
+  if (QUESTION_KEYWORDS.some(k => lower.includes(k))) return 'question'
+  return 'general'
+}
+
+const TAG_STYLES: Record<MessageTag, string> = {
+  attendance: 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400',
+  question:   'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400',
+  general:    'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-muted))]',
+}
+
+const TAG_LABELS: Record<MessageTag, string> = {
+  attendance: '📋 Attendance',
+  question:   '❓ Question',
+  general:    'General',
+}
+
 const ROLE_CHANNEL_ACCESS: Record<string, ChannelType[]> = {
-  admin:   ['public', 'coaches', 'admin'],
+  admin:   ['public', 'coaches', 'admin', 'hs', 'devo'],
   coach:   ['public', 'coaches'],
-  athlete: ['public'],
+  athlete: ['public'], // hs/devo added dynamically based on roster flags
   parent:  ['public'],
 }
 
@@ -81,7 +119,16 @@ function groupReactions(raw: { emoji: string; userId: string }[]): Reaction[] {
 export default function ChatPage() {
   const { role } = useRole()
   const supabase = createClient()
-  const allowedTypes = ROLE_CHANNEL_ACCESS[role] ?? ['public']
+
+  // Roster flags for hs/devo channel access
+  const [isHSAthlete, setIsHSAthlete] = useState(false)
+  const [isDevAthlete, setIsDevAthlete] = useState(false)
+
+  const allowedTypes: ChannelType[] = [
+    ...(ROLE_CHANNEL_ACCESS[role] ?? ['public']),
+    ...(isHSAthlete && role === 'athlete' ? ['hs' as const] : []),
+    ...(isDevAthlete && role === 'athlete' ? ['devo' as const] : []),
+  ]
 
   const [channels, setChannels] = useState<Channel[]>([])
   const visibleChannels = channels.filter(c => allowedTypes.includes(c.type))
@@ -91,6 +138,8 @@ export default function ChatPage() {
   const [myUserId, setMyUserId] = useState<string | null>(null)
   const [myName, setMyName] = useState<string>('You')
   const [allUsers, setAllUsers] = useState<MentionUser[]>([])
+
+  const [tagFilter, setTagFilter] = useState<MessageTag | null>(null)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [loadingMsgs, setLoadingMsgs] = useState(false)
@@ -118,7 +167,7 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // ── Load current user ────────────────────────────────────────────
+  // ── Load current user + roster flags ─────────────────────────────
   useEffect(() => {
     const devBypass = typeof document !== 'undefined' && document.cookie.includes('dev_bypass=1')
     if (devBypass) {
@@ -131,6 +180,14 @@ export default function ChatPage() {
           supabase.from('users').select('name').eq('id', data.user.id).single().then(({ data: u }) => {
             if (u?.name) setMyName(u.name)
           })
+          // Fetch roster flags for channel access
+          supabase.from('roster_members').select('is_hs_athlete, is_dev_athlete')
+            .eq('email', data.user.email ?? '').maybeSingle().then(({ data: rm }) => {
+              if (rm) {
+                setIsHSAthlete(rm.is_hs_athlete ?? false)
+                setIsDevAthlete(rm.is_dev_athlete ?? false)
+              }
+            })
         }
       })
     }
@@ -140,10 +197,22 @@ export default function ChatPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Load channels ────────────────────────────────────────────────
+  // ── Load channels (seed defaults if none exist) ──────────────────
   useEffect(() => {
-    supabase.from('chat_channels').select('id, name, description, type').order('name').then(({ data }) => {
-      if (data) setChannels(data as Channel[])
+    supabase.from('chat_channels').select('id, name, description, type').order('name').then(async ({ data }) => {
+      if (data && data.length > 0) {
+        setChannels(data as Channel[])
+        return
+      }
+      // Seed default channels
+      const devBypass = typeof document !== 'undefined' && document.cookie.includes('dev_bypass=1')
+      const userId = devBypass ? DEV_USER.id : (await supabase.auth.getUser()).data.user?.id
+      if (!userId) { setChannels([]); return }
+      const toInsert = DEFAULT_CHANNELS.map(ch => ({
+        id: crypto.randomUUID(), ...ch, created_by: userId,
+      }))
+      const { data: inserted } = await supabase.from('chat_channels').insert(toInsert).select()
+      if (inserted) setChannels(inserted as Channel[])
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -189,6 +258,7 @@ export default function ChatPage() {
             userName,
             avatarInitials: initials(userName),
             content: row.content,
+            tag: autoDetectTag(row.content),
             replyTo: null,
             reactions: groupReactions((row.chat_reactions ?? []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }))),
             edited: row.edited,
@@ -227,6 +297,7 @@ export default function ChatPage() {
       const msg: Message = {
         id: row.id, channelId: row.channel_id, userId: row.user_id,
         userName, avatarInitials: initials(userName), content: row.content,
+        tag: autoDetectTag(row.content),
         replyTo: null, reactions: [], edited: row.edited ?? false, deleted: row.deleted ?? false,
         createdAt: new Date(row.created_at),
       }
@@ -449,6 +520,8 @@ export default function ChatPage() {
   }
 
   const typingNames = Object.values(typingUsers)
+  const filteredMessages = tagFilter ? messages.filter(m => m.tag === tagFilter) : messages
+  const detectedTag = input.trim() ? autoDetectTag(input) : null
 
   // ─── Render ──────────────────────────────────────────────────────
   return (
@@ -489,12 +562,26 @@ export default function ChatPage() {
         {activeChannel ? (
           <>
             {/* Header */}
-            <div className="border-b border-[rgb(var(--border))] px-6 py-3 flex items-center gap-2">
-              <Hash className="h-4 w-4 text-[rgb(var(--text-muted))]" />
-              <h2 className="font-semibold text-[rgb(var(--text))]">{activeChannel.name}</h2>
-              {activeChannel.description && (
-                <span className="text-xs text-[rgb(var(--text-muted))]">— {activeChannel.description}</span>
-              )}
+            <div className="border-b border-[rgb(var(--border))] px-4 py-2.5 flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <Hash className="h-4 w-4 text-[rgb(var(--text-muted))]" />
+                <h2 className="font-semibold text-[rgb(var(--text))]">{activeChannel.name}</h2>
+                {activeChannel.description && (
+                  <span className="text-xs text-[rgb(var(--text-muted))] hidden sm:inline">— {activeChannel.description}</span>
+                )}
+              </div>
+              <div className="flex gap-1 ml-auto flex-wrap">
+                {([null, 'attendance', 'question', 'general'] as const).map(t => (
+                  <button key={String(t)} onClick={() => setTagFilter(t)}
+                    className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors',
+                      tagFilter === t
+                        ? t === null ? 'bg-[rgb(var(--text))] text-[rgb(var(--surface))]' : TAG_STYLES[t]
+                        : 'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text))]'
+                    )}>
+                    {t === null ? 'All' : TAG_LABELS[t]}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Messages */}
@@ -503,17 +590,21 @@ export default function ChatPage() {
                 <div className="flex h-full items-center justify-center">
                   <Loader2 className="h-6 w-6 animate-spin text-[rgb(var(--text-muted))]" />
                 </div>
-              ) : messages.length === 0 ? (
+              ) : filteredMessages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <Hash className="h-10 w-10 text-[rgb(var(--border))]" />
-                  <p className="mt-3 font-medium text-[rgb(var(--text-muted))]">No messages yet</p>
-                  <p className="text-sm text-[rgb(var(--text-muted))] opacity-60">Be the first in #{activeChannel.name}</p>
+                  <p className="mt-3 font-medium text-[rgb(var(--text-muted))]">
+                    {tagFilter ? `No ${TAG_LABELS[tagFilter]} messages` : 'No messages yet'}
+                  </p>
+                  <p className="text-sm text-[rgb(var(--text-muted))] opacity-60">
+                    {tagFilter ? 'Try a different filter' : `Be the first in #${activeChannel.name}`}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-0.5">
-                  {messages.map((msg, i) => {
+                  {filteredMessages.map((msg, i) => {
                     const isMe = msg.userId === myUserId
-                    const prevMsg = messages[i - 1]
+                    const prevMsg = filteredMessages[i - 1]
                     const grouped = prevMsg && prevMsg.userId === msg.userId &&
                       msg.createdAt.getTime() - prevMsg.createdAt.getTime() < 5 * 60 * 1000
                     const isHovered = hoverMsg === msg.id
@@ -539,13 +630,18 @@ export default function ChatPage() {
 
                         <div className="flex-1 min-w-0">
                           {!grouped && (
-                            <div className="flex items-baseline gap-2 mb-0.5">
+                            <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
                               <span className={cn('text-sm font-semibold', isMe ? 'text-brand-600 dark:text-brand-400' : 'text-[rgb(var(--text))]')}>
                                 {msg.userName}
                               </span>
                               <span className="text-xs text-[rgb(var(--text-muted))]">
                                 {msg.createdAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                               </span>
+                              {msg.tag !== 'general' && !msg.deleted && (
+                                <span className={cn('rounded-full px-1.5 py-0.5 text-xs font-medium', TAG_STYLES[msg.tag])}>
+                                  {TAG_LABELS[msg.tag]}
+                                </span>
+                              )}
                               {msg.edited && <span className="text-xs text-[rgb(var(--text-muted))] opacity-60">(edited)</span>}
                             </div>
                           )}
@@ -750,7 +846,14 @@ export default function ChatPage() {
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">Enter to send · Shift+Enter for new line</p>
+              <div className="mt-1 flex items-center gap-2">
+                <p className="text-xs text-[rgb(var(--text-muted))]">Enter to send · Shift+Enter for new line</p>
+                {detectedTag && detectedTag !== 'general' && (
+                  <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', TAG_STYLES[detectedTag])}>
+                    Auto-tag: {TAG_LABELS[detectedTag]}
+                  </span>
+                )}
+              </div>
             </div>
           </>
         ) : (

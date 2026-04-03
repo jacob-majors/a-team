@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   CalendarDays, Users, MessageSquare, FileText, HandHeart,
-  Camera, Megaphone, LogOut, Database, Settings, LayoutDashboard,
+  Camera, Megaphone, LogOut, Database, Settings, LayoutDashboard, Bike,
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -21,6 +21,7 @@ const ALL_NAV = [
   { href: '/dashboard/documents',     label: 'Documents',     icon: FileText,      roles: ['admin','coach'] },
   { href: '/dashboard/volunteers',    label: 'Volunteers',    icon: HandHeart,     roles: ['admin','coach','parent'] },
   { href: '/dashboard/photos',        label: 'Photos',        icon: Camera,        roles: ['admin','coach','athlete','parent'] },
+  { href: '/dashboard/ride-groups',    label: 'Ride Groups',   icon: Bike,          roles: ['admin'] },
   { href: '/dashboard/database',      label: 'Database',      icon: Database,      roles: ['admin'] },
   { href: '/dashboard/settings',      label: 'Settings',      icon: Settings,      roles: ['admin','coach','athlete','parent'] },
 ]
