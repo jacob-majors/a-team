@@ -14,27 +14,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   let userName = 'Dev User'
   let userRole = 'admin'
-  let userAvatarUrl: string | undefined = undefined
 
   if (user) {
     const { data: profile } = await supabase
       .from('users')
-      .select('name, role, avatar_url')
+      .select('name, role')
       .eq('id', user.id)
       .single()
-    userName     = profile?.name
-                ?? (user.user_metadata?.['full_name'] as string | undefined)
-                ?? (user.user_metadata?.['name'] as string | undefined)
-                ?? user.email
-                ?? 'User'
-    userRole     = profile?.role      ?? 'athlete'
-    userAvatarUrl = profile?.avatar_url ?? user.user_metadata?.['avatar_url'] ?? undefined
+    userName = profile?.name
+            ?? (user.user_metadata?.['full_name'] as string | undefined)
+            ?? (user.user_metadata?.['name'] as string | undefined)
+            ?? user.email
+            ?? 'User'
+    userRole = profile?.role ?? 'athlete'
   }
 
   return (
     <RoleProvider defaultRole={userRole as any}>
       <div className="flex h-screen overflow-hidden bg-[rgb(var(--bg-secondary))]">
-        <Sidebar userName={userName} userRole={userRole} userAvatarUrl={userAvatarUrl} />
+        <Sidebar userName={userName} userRole={userRole} />
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <header className="flex h-14 shrink-0 items-center justify-between border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 sm:px-6">

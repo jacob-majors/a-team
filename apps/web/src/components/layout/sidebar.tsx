@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   CalendarDays, Users, MessageSquare, FileText, HandHeart,
-  Camera, Megaphone, LogOut, Database, Settings, LayoutDashboard, Bike,
+  Camera, Megaphone, LogOut, Database, LayoutDashboard, Bike,
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -23,16 +23,14 @@ const ALL_NAV = [
   { href: '/dashboard/photos',        label: 'Photos',        icon: Camera,        roles: ['admin','coach','athlete','parent'] },
   { href: '/dashboard/ride-groups',    label: 'Ride Groups',   icon: Bike,          roles: ['admin'] },
   { href: '/dashboard/database',      label: 'Database',      icon: Database,      roles: ['admin'] },
-  { href: '/dashboard/settings',      label: 'Settings',      icon: Settings,      roles: ['admin','coach','athlete','parent'] },
 ]
 
 interface SidebarProps {
   userName: string
   userRole: string
-  userAvatarUrl?: string
 }
 
-export function Sidebar({ userName: initialUserName, userRole, userAvatarUrl }: SidebarProps) {
+export function Sidebar({ userName: initialUserName, userRole }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -109,14 +107,9 @@ export function Sidebar({ userName: initialUserName, userRole, userAvatarUrl }: 
               className="flex flex-1 min-w-0 items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-white/10 transition-colors"
               title="Open settings"
             >
-              {userAvatarUrl ? (
-                <Image src={userAvatarUrl} alt={userName} width={36} height={36}
-                  className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/30" />
-              ) : (
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 ring-2 ring-white/30 text-sm font-bold text-white">
-                  {initials}
-                </div>
-              )}
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 ring-2 ring-white/30 text-sm font-bold text-white">
+                {initials}
+              </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-white leading-tight">{userName}</p>
                 <p className="truncate text-xs text-white/60 capitalize">{roleLabel}</p>
