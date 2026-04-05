@@ -58,7 +58,9 @@ export function Sidebar({ userName: initialUserName, userRole, userAvatarUrl }: 
     router.refresh()
   }
 
-  const initials = userName.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
+  const initials = userName.includes('@')
+    ? userName.split('@')[0]!.slice(0, 2).toUpperCase()
+    : userName.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1)
 
   return (
@@ -100,21 +102,31 @@ export function Sidebar({ userName: initialUserName, userRole, userAvatarUrl }: 
         </nav>
 
         {/* User */}
-        <div className="border-t border-white/15 px-4 py-4">
-          <div className="flex items-center gap-3">
-            {userAvatarUrl ? (
-              <Image src={userAvatarUrl} alt={userName} width={40} height={40}
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-white/30" />
-            ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 ring-2 ring-white/30 text-sm font-bold text-white">
-                {initials}
+        <div className="border-t border-white/15 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/settings"
+              className="flex flex-1 min-w-0 items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-white/10 transition-colors"
+              title="Open settings"
+            >
+              {userAvatarUrl ? (
+                <Image src={userAvatarUrl} alt={userName} width={36} height={36}
+                  className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/30" />
+              ) : (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 ring-2 ring-white/30 text-sm font-bold text-white">
+                  {initials}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-white leading-tight">{userName}</p>
+                <p className="truncate text-xs text-white/60 capitalize">{roleLabel}</p>
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">{userName}</p>
-              <p className="truncate text-xs text-white/60 capitalize">{roleLabel}</p>
-            </div>
-            <button onClick={handleSignOut} className="rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition-colors" title="Sign out">
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="shrink-0 rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+              title="Sign out"
+            >
               <LogOut className="h-4 w-4" />
             </button>
           </div>

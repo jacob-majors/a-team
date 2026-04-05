@@ -22,7 +22,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .select('name, role, avatar_url')
       .eq('id', user.id)
       .single()
-    userName     = profile?.name      ?? user.email ?? 'User'
+    userName     = profile?.name
+                ?? (user.user_metadata?.['full_name'] as string | undefined)
+                ?? (user.user_metadata?.['name'] as string | undefined)
+                ?? user.email
+                ?? 'User'
     userRole     = profile?.role      ?? 'athlete'
     userAvatarUrl = profile?.avatar_url ?? user.user_metadata?.['avatar_url'] ?? undefined
   }
