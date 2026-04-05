@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useRole } from '@/components/layout/role-switcher'
 import Papa from 'papaparse'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -352,22 +353,13 @@ function MemberDetail({ member, onClose, onSave, section }: {
 
 export default function DatabasePage() {
   const supabase = createClient()
+  const { role: myRole } = useRole()
   const [section, setSection] = useState<Section>('riders')
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Member | null>(null)
   const [showExport, setShowExport] = useState(false)
-  const [myRole, setMyRole] = useState<string | null>(null)
-
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return
-      const { data: u } = await supabase.from('users').select('role').eq('id', data.user.id).single()
-      setMyRole(u?.role ?? null)
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     loadMembers()
@@ -484,8 +476,9 @@ export default function DatabasePage() {
 
   if (myRole !== 'admin' && myRole !== 'coach') {
     return (
-      <div className="flex h-64 items-center justify-center text-gray-400">
-        <p>This section is for coaches and admins only.</p>
+      <div className="flex h-64 flex-col items-center justify-center gap-2 text-[rgb(var(--text-muted))]">
+        <p className="font-medium">This section is for coaches and admins only.</p>
+        <p className="text-sm opacity-60">Switch your role using the dropdown in the header.</p>
       </div>
     )
   }

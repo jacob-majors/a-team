@@ -27,20 +27,28 @@ const ROLES: { value: Role; label: string; active: string; inactive: string }[] 
   { value: 'parent',  label: 'Parent',  active: 'bg-purple-600 text-white',  inactive: 'text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text))]' },
 ]
 
+const ROLE_COLORS: Record<Role, string> = {
+  admin:   'text-brand-600 dark:text-brand-400',
+  coach:   'text-blue-600 dark:text-blue-400',
+  athlete: 'text-green-600 dark:text-green-400',
+  parent:  'text-purple-600 dark:text-purple-400',
+}
+
 export function RoleSwitcher() {
   const { role, setRole } = useRole()
 
   return (
-    <div className="flex items-center gap-0.5 rounded-xl bg-[rgb(var(--bg-secondary))] p-1 border border-[rgb(var(--border))]">
-      {ROLES.map(r => (
-        <button
-          key={r.value}
-          onClick={() => setRole(r.value)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${role === r.value ? r.active : r.inactive}`}
-        >
-          {r.label}
-        </button>
-      ))}
+    <div className="relative flex items-center gap-1.5 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-2.5 py-1.5">
+      <span className="text-xs text-[rgb(var(--text-muted))]">View as:</span>
+      <select
+        value={role}
+        onChange={e => setRole(e.target.value as Role)}
+        className={`bg-transparent text-xs font-semibold focus:outline-none cursor-pointer pr-1 ${ROLE_COLORS[role]}`}
+      >
+        {ROLES.map(r => (
+          <option key={r.value} value={r.value}>{r.label}</option>
+        ))}
+      </select>
     </div>
   )
 }
