@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sun, Moon, Monitor, Save, Check } from 'lucide-react'
+import { Sun, Moon, Monitor, Save, Check, Plus, X, Users } from 'lucide-react'
 import { useTheme } from '@/components/theme/provider'
 import { createClient } from '@/lib/supabase/client'
+import { useShadow } from '@/components/layout/shadow-context'
 import { cn } from '@a-team/utils'
 
 const THEME_OPTIONS = [
@@ -16,8 +17,16 @@ function getInitials(name: string) {
   return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
 }
 
+interface LinkedAthlete {
+  id: string
+  athleteMemberId: string
+  athleteName: string
+  athleteRole: string
+}
+
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
+  const { setShadow } = useShadow()
   const supabase = createClient()
 
   const [name, setName] = useState('')
@@ -27,6 +36,13 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [isDevUser, setIsDevUser] = useState(false)
+
+  // Family / shadow
+  const [myMemberId, setMyMemberId] = useState<string | null>(null)
+  const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([])
+  const [athleteEmailInput, setAthleteEmailInput] = useState('')
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const [linking, setLinking] = useState(false)
 
   useEffect(() => {
     const devBypass = document.cookie.includes('dev_bypass=1')
@@ -68,6 +84,72 @@ export default function SettingsPage() {
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Load my roster member ID and linked athletes
+  useEffect(() => {
+    if (isDevUser || !userId) return
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user?.email) return
+      const { data: member } = await supabase
+        .from('roster_members').select('id').ilike('email', data.user.email).maybeSingle()
+      if (!member) return
+      setMyMemberId(member.id)
+      loadLinkedAthletes(member.id)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, isDevUser])
+
+  async function loadLinkedAthletes(memberId: string) {
+    const { data } = await supabase
+      .from('parent_athlete_links')
+      .select('id, athlete_member_id')
+      .eq('parent_member_id', memberId)
+    if (!data) return
+    const athleteIds = data.map((r: any) => r.athlete_member_id)
+    if (athleteIds.length === 0) { setLinkedAthletes([]); return }
+    const { data: athletes } = await supabase
+      .from('roster_members').select('id, full_name, role').in('id', athleteIds)
+    if (athletes) {
+      setLinkedAthletes(data.map((r: any) => {
+        const a = athletes.find((x: any) => x.id === r.athlete_member_id)
+        return { id: r.id, athleteMemberId: r.athlete_member_id, athleteName: a?.full_name ?? 'Unknown', athleteRole: a?.role ?? 'athlete' }
+      }))
+    }
+  }
+
+  async function handleLinkAthlete() {
+    const email = athleteEmailInput.trim()
+    if (!email || !myMemberId) return
+    setLinkError(null)
+    setLinking(true)
+    const { data: athlete } = await supabase
+      .from('roster_members').select('id, full_name, role').ilike('email', email).maybeSingle()
+    if (!athlete) {
+      setLinkError('No roster member found with that email.')
+      setLinking(false)
+      return
+    }
+    if (athlete.id === myMemberId) {
+      setLinkError("You can't link to yourself.")
+      setLinking(false)
+      return
+    }
+    const { error } = await supabase.from('parent_athlete_links').insert({
+      parent_member_id: myMemberId, athlete_member_id: athlete.id,
+    })
+    if (error) {
+      setLinkError(error.code === '23505' ? 'Already linked to this person.' : error.message)
+    } else {
+      setAthleteEmailInput('')
+      await loadLinkedAthletes(myMemberId)
+    }
+    setLinking(false)
+  }
+
+  async function handleUnlink(linkId: string) {
+    await supabase.from('parent_athlete_links').delete().eq('id', linkId)
+    if (myMemberId) await loadLinkedAthletes(myMemberId)
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -201,6 +283,69 @@ export default function SettingsPage() {
           </button>
         </form>
       </section>
+      {/* Family / Shadow mode */}
+      {!isDevUser && (
+        <section className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Users className="h-5 w-5 text-brand-500" />
+            <h2 className="text-base font-semibold text-[rgb(var(--text))]">Family — Linked Athletes</h2>
+          </div>
+          <p className="text-sm text-[rgb(var(--text-muted))] mb-5">
+            Link your athlete's account so you can view the app as them. Enter the email address on their roster profile.
+          </p>
+
+          {/* Existing links */}
+          {linkedAthletes.length > 0 && (
+            <div className="mb-4 space-y-2">
+              {linkedAthletes.map(link => (
+                <div key={link.id} className="flex items-center justify-between rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-950/50 text-sm font-bold text-brand-700 dark:text-brand-300">
+                      {link.athleteName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-[rgb(var(--text))]">{link.athleteName}</p>
+                      <p className="text-xs text-[rgb(var(--text-muted))] capitalize">{link.athleteRole}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShadow({ memberId: link.athleteMemberId, name: link.athleteName, role: link.athleteRole })}
+                      className="rounded-lg border border-brand-300 dark:border-brand-700 bg-brand-50 dark:bg-brand-950/30 px-3 py-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-950/50 transition-colors">
+                      View as {link.athleteName.split(' ')[0]}
+                    </button>
+                    <button onClick={() => handleUnlink(link.id)}
+                      className="rounded-lg p-1.5 text-[rgb(var(--text-muted))] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add link form */}
+          <div className="flex gap-2">
+            <input
+              value={athleteEmailInput}
+              onChange={e => setAthleteEmailInput(e.target.value)}
+              placeholder="Athlete's roster email address"
+              className="flex-1 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg-secondary))] px-3 py-2.5 text-sm text-[rgb(var(--text))] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+            <button
+              onClick={handleLinkAthlete}
+              disabled={!athleteEmailInput.trim() || linking}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-40 transition-colors">
+              <Plus className="h-4 w-4" />
+              {linking ? 'Linking…' : 'Link'}
+            </button>
+          </div>
+          {linkError && <p className="mt-2 text-sm text-red-500">{linkError}</p>}
+          <p className="mt-2 text-xs text-[rgb(var(--text-muted))] opacity-70">
+            The athlete's email must match what's on the roster. Ask your team director if you're unsure.
+          </p>
+        </section>
+      )}
     </div>
   )
 }

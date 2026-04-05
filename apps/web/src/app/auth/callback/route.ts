@@ -23,10 +23,36 @@ export async function GET(request: NextRequest) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_failed`)
+
+    const userEmail = data.user?.email ?? ''
+
+    // Gate: email must be on the roster (checks primary email + any linked emails)
+    const { data: member } = await supabase
+      .from('roster_members')
+      .select('id')
+      .ilike('email', userEmail)
+      .maybeSingle()
+
+    // Also check roster_member_emails table if it exists
+    let linkedMember = null
+    if (!member) {
+      const { data: linked } = await supabase
+        .from('roster_member_emails')
+        .select('member_id')
+        .ilike('email', userEmail)
+        .maybeSingle()
+      linkedMember = linked
     }
+
+    if (!member && !linkedMember) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(`${origin}/sign-in?error=not_on_roster`)
+    }
+
+    return NextResponse.redirect(`${origin}${next}`)
   }
 
   return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_failed`)

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -18,22 +17,51 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Handle OAuth code that sometimes lands here instead of /auth/callback
+  // Surface errors passed back from auth callback (e.g. not on roster)
+  useEffect(() => {
+    const err = searchParams.get('error')
+    if (err === 'not_on_roster') {
+      setError('Your email isn\'t on the team roster. Talk to your team director to get access.')
+    } else if (err === 'auth_callback_failed') {
+      setError('Sign-in failed. Please try again.')
+    }
+  }, [searchParams])
+
+  // Handle OAuth code exchange (Google redirects here sometimes)
   useEffect(() => {
     const code = searchParams.get('code')
     if (!code) return
     setLoading(true)
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (error) { setLoading(false); setError(error.message) }
-      else { router.push('/dashboard'); router.refresh() }
+    supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+      if (error) { setLoading(false); setError(error.message); return }
+      checkRosterAndRedirect(data.user?.email ?? '')
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || location.origin
 
+  async function checkRosterAndRedirect(userEmail: string) {
+    const { data } = await supabase
+      .from('roster_members')
+      .select('id')
+      .ilike('email', userEmail)
+      .maybeSingle()
+
+    if (!data) {
+      await supabase.auth.signOut()
+      setLoading(false)
+      setError("Your email isn't on the team roster. Talk to your team director to get access.")
+      return
+    }
+
+    router.push('/dashboard')
+    router.refresh()
+  }
+
   async function handleGoogle() {
     setLoading(true)
+    setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${siteUrl}/auth/callback` },
@@ -43,25 +71,17 @@ export default function SignInPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    signIn(email, password)
+    setError(null)
+    setLoading(true)
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) { setError(error.message); setLoading(false); return }
+    if (data.user) await checkRosterAndRedirect(data.user.email ?? '')
   }
 
   function handleDevLogin() {
     document.cookie = 'dev_bypass=1; path=/; max-age=86400'
     window.location.href = '/dashboard'
-  }
-
-  async function signIn(e: string, p: string) {
-    setError(null)
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email: e, password: p })
-    setLoading(false)
-    if (error) {
-      setError(error.message)
-    } else {
-      router.push('/dashboard')
-      router.refresh()
-    }
   }
 
   return (
@@ -73,7 +93,8 @@ export default function SignInPage() {
 
       <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
         <div className="mb-8 flex justify-center">
-          <Image src="/logo.png" alt="A-Team Annadel Composite" width={160} height={54} className="object-contain brightness-0 invert" />
+          <Image src="/logo.png" alt="A-Team Annadel Composite" width={160} height={54}
+            className="object-contain brightness-0 invert" />
         </div>
 
         <h1 className="mb-1 text-center text-xl font-bold text-white">Welcome back</h1>
@@ -85,15 +106,11 @@ export default function SignInPage() {
           </div>
         )}
 
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-white/90 mb-1">Email</label>
             <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              type="email" required value={email} onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/40 backdrop-blur-sm"
             />
@@ -101,19 +118,13 @@ export default function SignInPage() {
           <div>
             <label className="block text-sm font-medium text-white/90 mb-1">Password</label>
             <input
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              type="password" required value={password} onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/40 backdrop-blur-sm"
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-white py-2.5 text-sm font-semibold text-brand-700 hover:bg-white/90 disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full rounded-lg bg-white py-2.5 text-sm font-semibold text-brand-700 hover:bg-white/90 disabled:opacity-50 transition-colors">
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
@@ -124,12 +135,8 @@ export default function SignInPage() {
           <div className="flex-1 border-t border-white/20" />
         </div>
 
-        <button
-          type="button"
-          onClick={handleGoogle}
-          disabled={loading}
-          className="mt-4 w-full flex items-center justify-center gap-3 rounded-lg border border-white/30 bg-white/10 py-2.5 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-50 transition-colors backdrop-blur-sm"
-        >
+        <button type="button" onClick={handleGoogle} disabled={loading}
+          className="mt-4 w-full flex items-center justify-center gap-3 rounded-lg border border-white/30 bg-white/10 py-2.5 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-50 transition-colors backdrop-blur-sm">
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -139,19 +146,15 @@ export default function SignInPage() {
           Continue with Google
         </button>
 
-        <p className="mt-6 text-center text-sm text-white/60">
+        {/* No sign-up — roster-gated */}
+        <p className="mt-6 text-center text-sm text-white/50">
           Don&apos;t have an account?{' '}
-          <Link href="/sign-up" className="font-medium text-white hover:text-white/80">
-            Sign up
-          </Link>
+          <span className="text-white/70">Talk to your team director.</span>
         </p>
 
         {IS_DEV && (
-          <button
-            type="button"
-            onClick={handleDevLogin}
-            className="mt-6 mx-auto block text-xs text-white/40 hover:text-white/70 transition-colors underline underline-offset-2"
-          >
+          <button type="button" onClick={handleDevLogin}
+            className="mt-4 mx-auto block text-xs text-white/40 hover:text-white/70 transition-colors underline underline-offset-2">
             Skip login (dev)
           </button>
         )}

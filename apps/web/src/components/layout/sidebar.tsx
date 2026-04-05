@@ -11,6 +11,7 @@ import {
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRole } from '@/components/layout/role-switcher'
+import { useShadow } from '@/components/layout/shadow-context'
 
 const ALL_NAV = [
   { href: '/dashboard/home', label: 'Dashboard', icon: LayoutDashboard, exact: true, roles: ['admin','coach','athlete','parent'] },
@@ -35,6 +36,7 @@ export function Sidebar({ userName: initialUserName, userRole }: SidebarProps) {
   const router = useRouter()
   const supabase = createClient()
   const { role } = useRole()
+  const { shadow, setShadow } = useShadow()
   const [userName, setUserName] = useState(initialUserName)
 
   useEffect(() => {
@@ -98,6 +100,20 @@ export function Sidebar({ userName: initialUserName, userRole }: SidebarProps) {
             )
           })}
         </nav>
+
+        {/* Shadow mode banner */}
+        {shadow && (
+          <div className="mx-3 mb-2 rounded-lg bg-yellow-400/20 border border-yellow-300/40 px-3 py-2">
+            <p className="text-xs text-yellow-100 font-medium">Viewing as</p>
+            <p className="text-sm font-bold text-white truncate">{shadow.name}</p>
+            <button
+              onClick={() => setShadow(null)}
+              className="mt-1 text-xs text-yellow-200/70 hover:text-white underline"
+            >
+              Switch back to my account
+            </button>
+          </div>
+        )}
 
         {/* User */}
         <div className="border-t border-white/15 px-3 py-3">

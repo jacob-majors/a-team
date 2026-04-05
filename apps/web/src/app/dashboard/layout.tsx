@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/layout/sidebar'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { RoleProvider, RoleSwitcher } from '@/components/layout/role-switcher'
+import { ShadowProvider } from '@/components/layout/shadow-context'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -30,6 +31,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
+    <ShadowProvider>
     <RoleProvider defaultRole={userRole as any}>
       <div className="flex h-screen overflow-hidden bg-[rgb(var(--bg-secondary))]">
         <Sidebar userName={userName} userRole={userRole} />
@@ -51,5 +53,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <BottomNav />
       </div>
     </RoleProvider>
+    </ShadowProvider>
   )
 }
