@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { ChevronDown } from 'lucide-react'
 
 const IS_DEV = true // TODO: remove before going public
 
@@ -16,18 +17,17 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showEmail, setShowEmail] = useState(false)
 
-  // Surface errors passed back from auth callback (e.g. not on roster)
   useEffect(() => {
     const err = searchParams.get('error')
     if (err === 'not_on_roster') {
-      setError('Your email isn\'t on the team roster. Talk to your team director to get access.')
+      setError("Your email isn't on the team roster. Talk to your team director to get access.")
     } else if (err === 'auth_callback_failed') {
       setError('Sign-in failed. Please try again.')
     }
   }, [searchParams])
 
-  // Handle OAuth code exchange (Google redirects here sometimes)
   useEffect(() => {
     const code = searchParams.get('code')
     if (!code) return
@@ -39,7 +39,7 @@ export default function SignInPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || location.origin
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof location !== 'undefined' ? location.origin : '')
 
   async function checkRosterAndRedirect(userEmail: string) {
     const { data } = await supabase
@@ -73,7 +73,6 @@ export default function SignInPage() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); setLoading(false); return }
     if (data.user) await checkRosterAndRedirect(data.user.email ?? '')
@@ -86,12 +85,14 @@ export default function SignInPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-400 via-brand-600 to-brand-900" />
       <div className="absolute inset-0 backdrop-blur-sm" />
       <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-brand-300/40 blur-3xl" />
       <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-brand-800/50 blur-3xl" />
 
       <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
+        {/* Logo */}
         <div className="mb-8 flex justify-center">
           <Image src="/logo.png" alt="A-Team Annadel Composite" width={160} height={54}
             className="object-contain brightness-0 invert" />
@@ -106,38 +107,14 @@ export default function SignInPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-1">Email</label>
-            <input
-              type="email" required value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/40 backdrop-blur-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-1">Password</label>
-            <input
-              type="password" required value={password} onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/40 backdrop-blur-sm"
-            />
-          </div>
-          <button type="submit" disabled={loading}
-            className="w-full rounded-lg bg-white py-2.5 text-sm font-semibold text-brand-700 hover:bg-white/90 disabled:opacity-50 transition-colors">
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-
-        <div className="mt-4 flex items-center gap-3">
-          <div className="flex-1 border-t border-white/20" />
-          <span className="text-xs text-white/50">or</span>
-          <div className="flex-1 border-t border-white/20" />
-        </div>
-
-        <button type="button" onClick={handleGoogle} disabled={loading}
-          className="mt-4 w-full flex items-center justify-center gap-3 rounded-lg border border-white/30 bg-white/10 py-2.5 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-50 transition-colors backdrop-blur-sm">
-          <svg className="h-5 w-5" viewBox="0 0 24 24">
+        {/* Primary: Google */}
+        <button
+          type="button"
+          onClick={handleGoogle}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-3 rounded-lg bg-white py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors shadow-sm"
+        >
+          <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -146,9 +123,50 @@ export default function SignInPage() {
           Continue with Google
         </button>
 
-        {/* No sign-up — roster-gated */}
+        {/* Divider + email toggle */}
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setShowEmail(v => !v)}
+            className="w-full flex items-center gap-3 group"
+          >
+            <div className="flex-1 border-t border-white/20" />
+            <span className="flex items-center gap-1 text-xs text-white/50 group-hover:text-white/70 transition-colors">
+              Sign in with email
+              <ChevronDown className={`h-3 w-3 transition-transform ${showEmail ? 'rotate-180' : ''}`} />
+            </span>
+            <div className="flex-1 border-t border-white/20" />
+          </button>
+        </div>
+
+        {/* Email/password form — collapsible */}
+        {showEmail && (
+          <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-white/90 mb-1">Email</label>
+              <input
+                type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/40 backdrop-blur-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/90 mb-1">Password</label>
+              <input
+                type="password" required value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/40 backdrop-blur-sm"
+              />
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full rounded-lg border border-white/30 bg-white/10 py-2.5 text-sm font-semibold text-white hover:bg-white/20 disabled:opacity-50 transition-colors backdrop-blur-sm">
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        )}
+
         <p className="mt-6 text-center text-sm text-white/50">
-          Don&apos;t have an account?{' '}
+          Not on the team yet?{' '}
           <span className="text-white/70">Talk to your team director.</span>
         </p>
 

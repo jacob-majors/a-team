@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, CheckCircle, XCircle, Upload, X, Plus, AlertCircle, ArrowRight } from 'lucide-react'
+import { Search, CheckCircle, XCircle, Upload, X, Plus, AlertCircle, ArrowRight, Mail, Copy, Check } from 'lucide-react'
 import Papa from 'papaparse'
 import { cn } from '@a-team/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useRole } from '@/components/layout/role-switcher'
 
 type Role = 'athlete' | 'coach' | 'parent' | 'admin'
 
@@ -207,6 +208,7 @@ type ImportStep = 'upload' | 'map' | 'done'
 
 export default function RosterPage() {
   const supabase = createClient()
+  const { role: myRole } = useRole()
   const [members, setMembers] = useState<Member[]>([])
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<'' | 'athlete' | 'coach' | 'parent'>('')
@@ -218,6 +220,40 @@ export default function RosterPage() {
   const [importResult, setImportResult] = useState<{ added: number; dupes: number; errors: string[] } | null>(null)
   const [editMode, setEditMode] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Invite state
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [inviteCopied, setInviteCopied] = useState(false)
+
+  async function handleInvite(email: string) {
+    if (!email) return
+    setInviteLoading(true)
+    setInviteLink(null)
+    setInviteError(null)
+    try {
+      const res = await fetch('/api/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setInviteError(json.error ?? 'Failed to generate invite'); return }
+      setInviteLink(json.link)
+    } catch {
+      setInviteError('Network error')
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
+  function copyInviteLink() {
+    if (!inviteLink) return
+    navigator.clipboard.writeText(inviteLink)
+    setInviteCopied(true)
+    setTimeout(() => setInviteCopied(false), 2000)
+  }
 
   // CSV import wizard state
   const [importStep, setImportStep] = useState<ImportStep>('upload')
@@ -469,7 +505,7 @@ export default function RosterPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filtered.map(member => (
-                  <tr key={member.id} onClick={() => { setSelected(member); setEditMode(false) }}
+                  <tr key={member.id} onClick={() => { setSelected(member); setEditMode(false); setInviteLink(null); setInviteError(null) }}
                     className="hover:bg-gray-50 cursor-pointer transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -629,6 +665,55 @@ export default function RosterPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Invite — admin only, only if member has email */}
+                  {myRole === 'admin' && selected.email && (
+                    <div className="border-t border-gray-100 pt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Invite to app</p>
+                      <p className="text-xs text-gray-400 mb-3">
+                        Generates a one-time sign-up link for {selected.email}. They'll be prompted to set a password.
+                      </p>
+
+                      {inviteError && (
+                        <p className="mb-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{inviteError}</p>
+                      )}
+
+                      {inviteLink ? (
+                        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                          <p className="text-xs font-medium text-green-700 mb-1.5">Invite link ready — share with {selected.firstName}:</p>
+                          <div className="flex gap-2">
+                            <input
+                              readOnly
+                              value={inviteLink}
+                              className="flex-1 rounded-md border border-green-200 bg-white px-2 py-1.5 text-xs font-mono text-gray-700 truncate focus:outline-none"
+                            />
+                            <button
+                              onClick={copyInviteLink}
+                              className="shrink-0 flex items-center gap-1 rounded-md border border-green-300 bg-white px-2.5 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50"
+                            >
+                              {inviteCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                              {inviteCopied ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => { setInviteLink(null); setInviteError(null) }}
+                            className="mt-2 text-xs text-green-600 hover:underline"
+                          >
+                            Generate new link
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleInvite(selected.email)}
+                          disabled={inviteLoading}
+                          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          <Mail className="h-4 w-4" />
+                          {inviteLoading ? 'Generating…' : 'Generate invite link'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
