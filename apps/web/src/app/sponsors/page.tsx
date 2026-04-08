@@ -8,7 +8,7 @@ export default function SponsorsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
         </Link>
@@ -24,7 +24,7 @@ export default function SponsorsPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-28 pb-20 px-6 overflow-hidden">
+      <section className="relative pt-20 pb-20 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900" />
         <div className="absolute inset-0">
           <div className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-brand-400/20 blur-3xl" />

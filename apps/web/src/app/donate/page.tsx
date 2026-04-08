@@ -1,269 +1,499 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ChevronRight, Users, Trophy, Wrench, TreePine, Star } from 'lucide-react'
+import { ChevronRight, Heart, Check, X, AlertTriangle, Info } from 'lucide-react'
+import { DonationTabs } from '@/components/landing/donation-tabs'
 
-const tiers = [
+type Processor = {
+  name: string
+  tagline: string
+  color: string
+  textColor: string
+  initials: string
+  url: string
+  fee: string
+  feeDetail: string
+  setup: string
+  nonprofit: string | null
+  recurring: boolean
+  instantPayout: boolean
+  taxReceipt: boolean
+  recommended: boolean
+  verdict: 'best' | 'good' | 'ok' | 'skip'
+  verdictLabel: string
+  pros: string[]
+  cons: string[]
+  note?: string
+}
+
+const processors: Processor[] = [
   {
-    name: 'Trail Supporter',
-    amount: '$25',
-    frequency: 'one-time',
-    description: 'Every dollar helps keep our riders on the trail.',
-    perks: ['Thank-you shoutout in team newsletter', 'Good vibes from 150+ riders'],
-    color: 'border-gray-200',
-    badge: 'bg-gray-100 text-gray-600',
-    icon: <TreePine className="h-5 w-5" />,
-    cta: 'Give $25',
-    highlight: false,
+    name: 'Stripe',
+    tagline: 'Developer-first payments platform',
+    color: '#635bff',
+    textColor: '#ffffff',
+    initials: 'S',
+    url: 'https://stripe.com',
+    fee: '2.9% + $0.30',
+    feeDetail: 'per transaction. Nonprofit rate: 2.2% + $0.30 via Stripe for Nonprofits (must apply)',
+    setup: 'Moderate — requires dev or third-party integration',
+    nonprofit: '2.2% + $0.30 (apply via Stripe for Nonprofits)',
+    recurring: true,
+    instantPayout: false,
+    taxReceipt: false,
+    recommended: true,
+    verdict: 'best',
+    verdictLabel: 'Best overall',
+    pros: [
+      'Lowest fees with nonprofit discount',
+      'Excellent recurring donation support',
+      'Embeds directly in your website',
+      'Highly customizable',
+      'Trusted by major nonprofits',
+    ],
+    cons: [
+      'Requires dev work or a tool like Donorbox',
+      'Tax receipts need a third-party add-on',
+      'Must apply for nonprofit rate',
+    ],
+    note: 'Pair with Donorbox ($0/mo free tier) for a plug-and-play donate form that uses Stripe under the hood.',
   },
   {
-    name: 'Race Day Backer',
-    amount: '$100',
-    frequency: 'one-time',
-    description: 'Help cover entry fees so no rider misses a race.',
-    perks: [
-      'Name listed on team website',
-      'Team sticker pack',
-      'Thank-you in race day program',
+    name: 'PayPal Giving Fund',
+    tagline: 'Free nonprofit donations via PayPal',
+    color: '#003087',
+    textColor: '#ffffff',
+    initials: 'PP',
+    url: 'https://www.paypal.com/us/webapps/mpp/givingfund',
+    fee: '0%',
+    feeDetail: 'PayPal covers all fees for enrolled nonprofits. Standard PayPal rate (2.89% + $0.49) applies if not enrolled.',
+    setup: 'Easy — enroll nonprofit, add button to site',
+    nonprofit: '0% if enrolled in PayPal Giving Fund',
+    recurring: true,
+    instantPayout: false,
+    taxReceipt: true,
+    recommended: true,
+    verdict: 'best',
+    verdictLabel: 'Best free option',
+    pros: [
+      'Zero fees for verified nonprofits',
+      'Automatic tax receipts to donors',
+      'Donors already have PayPal accounts',
+      'Easy embed button',
     ],
-    color: 'border-gray-200',
-    badge: 'bg-blue-100 text-blue-700',
-    icon: <Trophy className="h-5 w-5" />,
-    cta: 'Give $100',
-    highlight: false,
+    cons: [
+      'Must be registered 501(c)(3)',
+      'Slower payouts (can take weeks)',
+      'Less customizable than Stripe',
+      'PayPal holds funds until disbursement',
+    ],
+    note: 'Best if you are a verified 501(c)(3). Payouts go directly to your nonprofit account.',
   },
   {
-    name: 'Team Sponsor',
-    amount: '$250',
-    frequency: 'one-time',
-    description: 'A meaningful contribution that keeps the whole program rolling.',
-    perks: [
-      'Logo on team jersey (season)',
-      'Social media shoutout',
-      'VIP race day experience',
-      'All previous perks',
+    name: 'Venmo',
+    tagline: 'Simple peer-to-peer payments',
+    color: '#3d95ce',
+    textColor: '#ffffff',
+    initials: 'V',
+    url: 'https://venmo.com',
+    fee: '1.9% + $0.10',
+    feeDetail: 'for business/nonprofit profiles. No fee for personal (but personal accounts lack tracking/receipts).',
+    setup: 'Very easy — just share your handle',
+    nonprofit: null,
+    recurring: false,
+    instantPayout: true,
+    taxReceipt: false,
+    recommended: false,
+    verdict: 'ok',
+    verdictLabel: 'OK for casual',
+    pros: [
+      'Extremely easy for donors to use',
+      'Instant payouts',
+      'Very familiar to parents and families',
     ],
-    color: 'border-brand-400 ring-2 ring-brand-400',
-    badge: 'bg-brand-600 text-white',
-    icon: <Star className="h-5 w-5" />,
-    cta: 'Give $250',
-    highlight: true,
+    cons: [
+      'No tax receipts',
+      'No recurring donations',
+      'No donation management dashboard',
+      'Not designed for nonprofits',
+      'No donor data / reporting',
+    ],
+    note: 'Fine for quick fundraisers but not scalable for a team of 150+ riders.',
   },
   {
-    name: 'Coach Patron',
-    amount: '$500',
-    frequency: 'one-time',
-    description: 'Help train and equip our 80+ volunteer coaches.',
-    perks: [
-      'Prominent logo on team kit',
-      'Named coaching clinic sponsor',
-      'Season-long social recognition',
-      'All previous perks',
+    name: 'Donorbox',
+    tagline: 'Nonprofit-first fundraising platform',
+    color: '#00aa7b',
+    textColor: '#ffffff',
+    initials: 'DB',
+    url: 'https://donorbox.org',
+    fee: '1.5% platform + Stripe/PayPal fees',
+    feeDetail: '1.5% Donorbox fee on top of Stripe (2.2% nonprofit) or PayPal. Free plan available up to $1,000/mo.',
+    setup: 'Very easy — embed form, no dev needed',
+    nonprofit: 'Yes — built for nonprofits, integrates Stripe nonprofit rate',
+    recurring: true,
+    instantPayout: false,
+    taxReceipt: true,
+    recommended: true,
+    verdict: 'best',
+    verdictLabel: 'Easiest to set up',
+    pros: [
+      'Purpose-built for nonprofits',
+      'Automatic tax receipts',
+      'Recurring donations built-in',
+      'No dev work — just copy embed code',
+      'Donor management dashboard',
+      'Free up to $1,000/month raised',
     ],
-    color: 'border-gray-200',
-    badge: 'bg-purple-100 text-purple-700',
-    icon: <Users className="h-5 w-5" />,
-    cta: 'Give $500',
-    highlight: false,
+    cons: [
+      '1.5% platform fee on top of payment processing',
+      'Free plan has Donorbox branding',
+      'Paid plan starts at $139/mo for white-label',
+    ],
+    note: 'Recommended starting point — set up in under an hour, no code needed.',
   },
   {
-    name: 'Equipment Angel',
-    amount: '$1,000',
-    frequency: 'one-time',
-    description: 'Fund a full set of gear or a fleet of loaner bikes for new riders.',
-    perks: [
-      'Named equipment donation',
-      'Banner at team events',
-      'Featured story in newsletter',
-      'All previous perks',
+    name: 'Give Lively',
+    tagline: 'Free fundraising for nonprofits',
+    color: '#ff5a5f',
+    textColor: '#ffffff',
+    initials: 'GL',
+    url: 'https://www.givelively.org',
+    fee: '0% platform fee',
+    feeDetail: 'Give Lively charges nothing. Only standard Stripe processing fees (2.2% + $0.30 for nonprofits).',
+    setup: 'Easy — free account, embed on website',
+    nonprofit: 'Nonprofit-only platform (must verify)',
+    recurring: true,
+    instantPayout: false,
+    taxReceipt: true,
+    recommended: true,
+    verdict: 'best',
+    verdictLabel: 'Best free nonprofit tool',
+    pros: [
+      'Zero platform fees — ever',
+      'Automatic tax receipts',
+      'Recurring donations',
+      'Peer-to-peer fundraising pages',
+      'Embeds on your website',
+      'Free donor management',
     ],
-    color: 'border-gray-200',
-    badge: 'bg-orange-100 text-orange-700',
-    icon: <Wrench className="h-5 w-5" />,
-    cta: 'Give $1,000',
-    highlight: false,
+    cons: [
+      'Must be a verified 501(c)(3)',
+      'Less customizable than Stripe',
+      'Smaller company — less support resources',
+    ],
+    note: 'Seriously great option if you have nonprofit status. No catch — they are funded by Salesforce.',
   },
   {
-    name: 'Founding Sponsor',
-    amount: 'Custom',
-    frequency: 'annual',
-    description: 'Partner with us at the highest level. Let\'s talk.',
-    perks: [
-      'Title sponsorship naming rights',
-      'Custom partnership agreement',
-      'Event co-branding',
-      'All previous perks',
+    name: 'GoFundMe',
+    tagline: 'Crowdfunding for campaigns',
+    color: '#02a95c',
+    textColor: '#ffffff',
+    initials: 'GFM',
+    url: 'https://www.gofundme.com',
+    fee: '0% + payment processing',
+    feeDetail: '0% platform fee. Payment processing: 2.9% + $0.30. Donors can optionally cover fees.',
+    setup: 'Extremely easy — create a campaign page',
+    nonprofit: null,
+    recurring: false,
+    instantPayout: false,
+    taxReceipt: false,
+    recommended: false,
+    verdict: 'ok',
+    verdictLabel: 'Good for campaigns',
+    pros: [
+      'No platform fee',
+      'Easy to share and go viral',
+      'Great for one-time fundraising drives',
+      'No setup required',
     ],
-    color: 'border-gray-900',
-    badge: 'bg-gray-900 text-white',
-    icon: <Heart className="h-5 w-5" />,
-    cta: 'Contact Us',
-    highlight: false,
+    cons: [
+      'No tax receipts',
+      'Not designed for ongoing giving',
+      'Funds held — slower payouts',
+      'No donor relationship management',
+      'Looks informal vs. a proper donate page',
+    ],
+    note: 'Best for a specific campaign (e.g. "New trailer fund") not ongoing team support.',
+  },
+  {
+    name: 'Square',
+    tagline: 'POS and online payments',
+    color: '#1a1a1a',
+    textColor: '#ffffff',
+    initials: 'SQ',
+    url: 'https://squareup.com',
+    fee: '2.6% + $0.15 (in-person), 2.9% + $0.30 (online)',
+    feeDetail: 'No nonprofit discount. In-person rate is competitive. Online is standard.',
+    setup: 'Easy — good for in-person race day collection',
+    nonprofit: null,
+    recurring: false,
+    instantPayout: false,
+    taxReceipt: false,
+    recommended: false,
+    verdict: 'ok',
+    verdictLabel: 'Best in-person',
+    pros: [
+      'Excellent for in-person donations at races/events',
+      'Free card reader',
+      'Instant setup',
+    ],
+    cons: [
+      'No nonprofit discount',
+      'No tax receipts',
+      'No recurring donations',
+      'Online donations less polished',
+    ],
+    note: 'Keep a Square reader at race registration for in-person donations — pairs well with Donorbox online.',
   },
 ]
 
-const impactItems = [
-  { amount: '$25',   impact: 'Covers trail maintenance fee for one rider' },
-  { amount: '$50',   impact: 'Pays for a full set of race numbers + plates' },
-  { amount: '$100',  impact: 'Funds race entry fees for one athlete' },
-  { amount: '$250',  impact: 'Sponsors a coaching certification workshop' },
-  { amount: '$500',  impact: 'Provides a loaner helmet + pads for a new rider' },
-  { amount: '$1,000', impact: 'Purchases a loaner bike for a student in need' },
+const verdictColors: Record<string, string> = {
+  best: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  good: 'bg-blue-50 text-blue-700 border-blue-200',
+  ok:   'bg-amber-50 text-amber-700 border-amber-200',
+  skip: 'bg-red-50 text-red-700 border-red-200',
+}
+
+const feeComparison = [
+  { amount: 25,   label: '$25 donation' },
+  { amount: 100,  label: '$100 donation' },
+  { amount: 500,  label: '$500 donation' },
+]
+
+function calcFee(amount: number, pct: number, fixed: number) {
+  return (amount * pct / 100 + fixed).toFixed(2)
+}
+
+const feeScenarios = [
+  { name: 'Stripe (nonprofit)',    pct: 2.2, fixed: 0.30, color: '#635bff' },
+  { name: 'PayPal Giving Fund',    pct: 0,   fixed: 0,    color: '#003087' },
+  { name: 'Donorbox + Stripe NP',  pct: 3.7, fixed: 0.30, color: '#00aa7b' },
+  { name: 'Give Lively',           pct: 2.2, fixed: 0.30, color: '#ff5a5f' },
+  { name: 'Standard Stripe',       pct: 2.9, fixed: 0.30, color: '#888' },
 ]
 
 export default function DonatePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <Link href="/" className="flex items-center">
+          <Image src="/logo.png" alt="Annadel Composite" width={110} height={38} className="object-contain" />
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/" className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-            Home
-          </Link>
-          <Link href="/sponsors" className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-            Sponsors
-          </Link>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
-          >
-            Team Portal
-            <ChevronRight className="h-4 w-4" />
+          <Link href="/" className="hidden sm:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">Home</Link>
+          <Link href="/sponsors" className="hidden sm:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">Sponsors</Link>
+          <Link href="/sign-in" className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors shadow-sm">
+            Team Portal <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-white to-brand-50" />
-        <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-brand-100/60 blur-3xl" />
-        <div className="relative mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-brand-600 text-white mb-6 mx-auto shadow-lg">
-            <Heart className="h-8 w-8" />
+      {/* Hero + donation tabs */}
+      <section className="pt-20 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900">
+        <div className="mx-auto max-w-3xl text-center mb-10">
+          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-white/20 text-white mb-5 mx-auto">
+            <Heart className="h-7 w-7" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
-            Support the Team
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
+            Support Annadel Composite
           </h1>
-          <p className="text-xl text-gray-500 max-w-xl mx-auto leading-relaxed">
-            Your donation directly funds bikes, gear, race fees, and coaching for 150+ student athletes at Annadel Composite.
+          <p className="text-brand-100/80 text-lg max-w-xl mx-auto">
+            Your donation funds bikes, gear, race fees, and coaching for 150+ student athletes.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3 justify-center">
-            <span className="px-3 py-1 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">501(c)(3) Nonprofit</span>
-            <span className="px-3 py-1 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">Tax Deductible</span>
-            <span className="px-3 py-1 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">NICA Member Team</span>
+        </div>
+        <DonationTabs />
+      </section>
+
+      {/* Quick recommendation banner */}
+      <section className="px-6 py-6 bg-emerald-50 border-b border-emerald-200">
+        <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex-shrink-0 flex items-center justify-center h-9 w-9 rounded-xl bg-emerald-600 text-white">
+            <Check className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-emerald-800">Our recommendation: Start with <span className="underline">Donorbox</span> (free tier) or <span className="underline">Give Lively</span> if you have 501(c)(3) status.</p>
+            <p className="text-xs text-emerald-700 mt-0.5">Both take under an hour to set up, require no coding, and handle tax receipts automatically.</p>
           </div>
         </div>
       </section>
 
-      {/* Donation tiers */}
-      <section className="py-16 px-6 bg-white">
+      {/* Fee comparison table */}
+      <section className="py-14 px-6 bg-white">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Choose Your Impact</h2>
-            <p className="mt-2 text-gray-500">Every level makes a real difference for our riders.</p>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-gray-900">Fee Comparison</h2>
+            <p className="mt-2 text-gray-500 text-sm">What actually reaches the team per donation amount</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tiers.map((tier) => (
-              <div
-                key={tier.name}
-                className={`relative flex flex-col rounded-2xl border-2 p-6 transition-shadow hover:shadow-lg ${tier.color} ${tier.highlight ? 'bg-brand-50/30' : 'bg-white'}`}
-              >
-                {tier.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold text-white bg-brand-600 rounded-full shadow-sm whitespace-nowrap">
-                    Most Popular
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left px-5 py-3 font-semibold text-gray-700">Processor</th>
+                  {feeComparison.map(({ label }) => (
+                    <th key={label} className="text-center px-4 py-3 font-semibold text-gray-700">{label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {feeScenarios.map(({ name, pct, fixed, color }) => (
+                  <tr key={name} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        <span className="font-medium text-gray-800">{name}</span>
+                      </div>
+                    </td>
+                    {feeComparison.map(({ amount }) => {
+                      const fee = parseFloat(calcFee(amount, pct, fixed))
+                      const net = (amount - fee).toFixed(2)
+                      return (
+                        <td key={amount} className="px-4 py-3 text-center">
+                          <span className="font-semibold text-gray-900">${net}</span>
+                          <span className="text-xs text-gray-400 ml-1">(−${fee.toFixed(2)})</span>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-xs text-gray-400 text-center">* Donorbox adds 1.5% platform fee on top of Stripe nonprofit rate (2.2%), totaling ~3.7%. Still lower than standard Stripe.</p>
+        </div>
+      </section>
+
+      {/* Processor cards */}
+      <section className="py-8 px-6 bg-gray-50">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-gray-900">Processor Breakdown</h2>
+            <p className="mt-2 text-gray-500 text-sm">Every major option — pros, cons, and what it costs</p>
+          </div>
+          <div className="space-y-5">
+            {processors.map((p) => (
+              <div key={p.name} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${p.recommended ? 'border-gray-200' : 'border-gray-100'}`}>
+                {/* Header */}
+                <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="flex-shrink-0 h-11 w-11 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm"
+                      style={{ backgroundColor: p.color, color: p.textColor }}
+                    >
+                      {p.initials}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-gray-900">{p.name}</h3>
+                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${verdictColors[p.verdict]}`}>
+                          {p.verdictLabel}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{p.tagline}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Visit site <ChevronRight className="h-3 w-3" />
+                  </a>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 grid sm:grid-cols-3 gap-6">
+                  {/* Fees */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Fees</p>
+                    <p className="text-base font-bold text-gray-900">{p.fee}</p>
+                    <p className="text-xs text-gray-500 mt-1 leading-snug">{p.feeDetail}</p>
+                    {p.nonprofit && (
+                      <div className="mt-2 flex items-start gap-1.5">
+                        <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-emerald-700 leading-snug">Nonprofit rate: {p.nonprofit}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Features</p>
+                    <div className="space-y-1.5">
+                      {[
+                        { label: 'Recurring donations', val: p.recurring },
+                        { label: 'Auto tax receipts',   val: p.taxReceipt },
+                        { label: 'Instant payouts',     val: p.instantPayout },
+                      ].map(({ label, val }) => (
+                        <div key={label} className="flex items-center gap-2">
+                          {val
+                            ? <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                            : <X className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />
+                          }
+                          <span className={`text-xs ${val ? 'text-gray-700' : 'text-gray-400'}`}>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pros & cons */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Pros & Cons</p>
+                    <ul className="space-y-1">
+                      {p.pros.slice(0, 3).map(pro => (
+                        <li key={pro} className="flex items-start gap-1.5">
+                          <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-xs text-gray-600">{pro}</span>
+                        </li>
+                      ))}
+                      {p.cons.slice(0, 2).map(con => (
+                        <li key={con} className="flex items-start gap-1.5">
+                          <X className="h-3.5 w-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-xs text-gray-400">{con}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Note */}
+                {p.note && (
+                  <div className="mx-6 mb-5 flex items-start gap-2 px-4 py-3 rounded-xl bg-brand-50 border border-brand-100">
+                    <Info className="h-4 w-4 text-brand-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-brand-700 leading-snug">{p.note}</p>
                   </div>
                 )}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`flex items-center justify-center h-9 w-9 rounded-xl ${tier.badge}`}>
-                    {tier.icon}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 text-sm">{tier.name}</div>
-                    <div className="text-xs text-gray-400 capitalize">{tier.frequency}</div>
-                  </div>
-                </div>
-                <div className="text-3xl font-extrabold text-gray-900 mb-2">{tier.amount}</div>
-                <p className="text-sm text-gray-500 mb-5 leading-relaxed">{tier.description}</p>
-                <ul className="space-y-2 mb-6 flex-1">
-                  {tier.perks.map(perk => (
-                    <li key={perk} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="mt-0.5 h-4 w-4 flex-shrink-0 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold">✓</span>
-                      {perk}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-colors ${
-                    tier.highlight
-                      ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm'
-                      : tier.name === 'Founding Sponsor'
-                      ? 'bg-gray-900 text-white hover:bg-gray-800'
-                      : 'border border-brand-600 text-brand-600 hover:bg-brand-50'
-                  }`}
-                >
-                  {tier.cta}
-                </button>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-center text-sm text-gray-400">
-            Donation processing coming soon. For immediate donations, contact your team director.
-          </p>
-        </div>
-      </section>
-
-      {/* Impact breakdown */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Where Your Money Goes</h2>
-            <p className="mt-2 text-gray-500">100% of donations go directly to the program.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {impactItems.map(({ amount, impact }) => (
-              <div key={amount} className="flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
-                <div className="flex-shrink-0 w-16 text-center">
-                  <span className="text-lg font-extrabold text-brand-600">{amount}</span>
-                </div>
-                <p className="text-sm text-gray-600">{impact}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Other ways to help */}
-      <section className="py-16 px-6 bg-white">
+      {/* Setup checklist */}
+      <section className="py-14 px-6 bg-white border-t border-gray-100">
         <div className="mx-auto max-w-3xl">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900">Other Ways to Help</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Before You Set Up Donations</h2>
+            <p className="mt-2 text-gray-500 text-sm">A few things to sort out first</p>
           </div>
-          <div className="grid sm:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {[
-              {
-                title: 'Volunteer',
-                desc: 'Join our team of 80+ coaches and volunteer leads. No experience required — just a passion for youth sports.',
-                cta: 'Learn More',
-              },
-              {
-                title: 'Donate Equipment',
-                desc: 'Bikes, helmets, tools, and gear in good condition go a long way for families new to the sport.',
-                cta: 'Contact Us',
-              },
-              {
-                title: 'Spread the Word',
-                desc: 'Share our mission with your network. Every new rider and sponsor helps the whole team thrive.',
-                cta: 'Share',
-              },
-            ].map(({ title, desc, cta }) => (
-              <div key={title} className="flex flex-col p-6 rounded-2xl border border-gray-100 hover:border-brand-200 hover:bg-brand-50/20 transition-colors">
-                <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 flex-1 mb-4">{desc}</p>
-                <button className="text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors text-left">
-                  {cta} →
-                </button>
+              { icon: '🏛️', title: '501(c)(3) Status', body: 'Determines which platforms are available at no cost. PayPal Giving Fund and Give Lively require verified nonprofit status. Without it, you pay standard processing rates.', warn: false },
+              { icon: '🏦', title: 'Bank Account', body: 'Donations need to land somewhere. Make sure the team has a dedicated bank account tied to the nonprofit EIN before going live with any processor.', warn: false },
+              { icon: '⚠️', title: 'NICA / League Rules', body: 'Check with NorCal and NICA about any rules on fundraising, third-party platforms, or how donations are reported. Some leagues have specific requirements.', warn: true },
+              { icon: '📋', title: 'Tax Receipts', body: 'Donors who give $250+ need a formal acknowledgment letter for IRS purposes. Donorbox, Give Lively, and PayPal Giving Fund handle this automatically.', warn: false },
+              { icon: '💰', title: 'Platform Fees vs. Flat Fees', body: 'Percentage fees hurt most on large donations. If you expect many big sponsors ($1,000+), negotiate a flat or capped fee structure with the processor.', warn: false },
+            ].map(({ icon, title, body, warn }) => (
+              <div key={title} className={`flex gap-4 p-5 rounded-2xl border ${warn ? 'border-amber-200 bg-amber-50' : 'border-gray-100 bg-gray-50'}`}>
+                <div className="text-2xl flex-shrink-0 mt-0.5">{icon}</div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
+                    {warn && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+                  </div>
+                  <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -276,13 +506,11 @@ export default function DonatePage() {
           <Link href="/">
             <Image src="/logo.png" alt="Annadel Composite" width={100} height={34} className="object-contain opacity-60" />
           </Link>
-          <p className="text-sm text-gray-400 text-center">
-            © {new Date().getFullYear()} Annadel Composite Mountain Bike Team · NICA
-          </p>
+          <p className="text-sm text-gray-400 text-center">© {new Date().getFullYear()} Annadel Composite Mountain Bike Team · NICA</p>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Home</Link>
             <Link href="/sponsors" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Sponsors</Link>
-            <Link href="/sign-in" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Team Portal</Link>
+            <Link href="/sign-in" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Portal</Link>
           </div>
         </div>
       </footer>

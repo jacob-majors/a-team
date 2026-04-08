@@ -4,7 +4,6 @@ import { Users, Award, MapPin, Mountain, Heart, ChevronRight } from 'lucide-reac
 import { ScrollReveal } from '@/components/landing/scroll-reveal'
 import { SponsorsMarquee } from '@/components/landing/sponsors-marquee'
 import { LandingNav } from '@/components/landing/nav'
-import { CoachesSection } from '@/components/landing/coaches'
 import { sponsors } from './sponsors/data'
 
 export default function LandingPage() {
@@ -63,7 +62,7 @@ export default function LandingPage() {
             { value: '150+', label: 'Student Athletes' },
             { value: '80+',  label: 'Volunteer Coaches' },
             { value: 'NICA', label: 'Sanctioned League' },
-            { value: 'K–12', label: 'All Grades Welcome' },
+            { value: '6–12', label: 'All Grades Welcome' },
           ].map(({ value, label }) => (
             <div key={label} className="py-4 px-3 text-center">
               <div className="text-xl sm:text-2xl font-extrabold text-white">{value}</div>
@@ -108,26 +107,6 @@ export default function LandingPage() {
               </ScrollReveal>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Coaches */}
-      <section className="py-24 px-6 bg-gray-50">
-        <div className="mx-auto max-w-6xl">
-          <ScrollReveal direction="up">
-            <div className="text-center mb-14">
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-brand-600 bg-brand-50 rounded-full uppercase tracking-wider mb-4">
-                Meet the Team
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Our Coaches</h2>
-              <p className="mt-3 text-gray-500 max-w-xl mx-auto">
-                80+ dedicated volunteers who show up every week to build strong riders, strong minds, and a lifelong love of the outdoors.
-              </p>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal direction="up" delay={80}>
-            <CoachesSection />
-          </ScrollReveal>
         </div>
       </section>
 
@@ -245,7 +224,7 @@ export default function LandingPage() {
                 { v: '18',   l: 'Middle Schools' },
                 { v: '22+',  l: 'High Schools' },
                 { v: '5',    l: 'Cities' },
-                { v: 'K–12', l: 'All Grades' },
+                { v: '6–12', l: 'All Grades' },
               ].map(({ v, l }) => (
                 <div key={l} className="text-center p-4 rounded-2xl border border-gray-100 bg-gray-50">
                   <div className="text-2xl font-extrabold text-brand-600">{v}</div>

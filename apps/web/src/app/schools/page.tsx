@@ -18,7 +18,7 @@ export default function SchoolsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
         </Link>
@@ -35,7 +35,7 @@ export default function SchoolsPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-28 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 overflow-hidden">
+      <section className="relative pt-20 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 overflow-hidden">
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-brand-400/20 blur-3xl" />
         <div className="absolute bottom-0 left-1/4 h-48 w-48 rounded-full bg-brand-900/60 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-4xl">
