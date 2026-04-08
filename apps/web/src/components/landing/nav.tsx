@@ -20,8 +20,8 @@ export function LandingNav() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between transition-all duration-500 ${
           scrolled
-            ? 'px-6 py-3 bg-brand-900/95 backdrop-blur-md shadow-lg'
-            : 'px-6 py-6 bg-transparent'
+            ? 'px-6 py-2 bg-brand-900/95 backdrop-blur-md shadow-lg'
+            : 'px-6 py-4 bg-transparent'
         }`}
       >
         <Link href="/" className="flex items-center">

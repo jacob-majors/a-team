@@ -13,8 +13,7 @@ export default function LandingPage() {
       <LandingNav />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Photo background */}
+      <section className="relative h-screen flex flex-col justify-between overflow-hidden">
         <Image
           src="/hero.jpg"
           alt="Annadel Composite riders on trail"
@@ -23,65 +22,54 @@ export default function LandingPage() {
           priority
           quality={90}
         />
-        {/* Dark gradient overlay so text is legible */}
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-950/70 via-brand-900/60 to-brand-950/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-950/60 via-brand-900/50 to-brand-950/75" />
 
-        <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
-          <div className="mb-6 flex justify-center">
-            <Image
-              src="/logo.png"
-              alt="Annadel Composite"
-              width={180}
-              height={60}
-              className="object-contain brightness-0 invert drop-shadow-lg"
-              priority
-            />
-          </div>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-[1.05] tracking-tight drop-shadow-md">
-            Annadel
-            <span className="block text-brand-300">Composite</span>
-          </h1>
-          <p className="mt-5 text-base sm:text-lg text-white/75 max-w-xl mx-auto leading-relaxed">
-            A NICA mountain bike team from Sonoma County — 150+ riders, 80+ coaches, one community.
-          </p>
+        {/* Main text — pushed toward top-center */}
+        <div className="relative z-10 flex-1 flex items-center justify-center px-6 pb-32">
+          <div className="text-center max-w-3xl">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-300 mb-4">
+              Sonoma County · NICA Mountain Biking
+            </p>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-[1.05] tracking-tight drop-shadow-md">
+              Annadel
+              <span className="block text-brand-300">Composite</span>
+            </h1>
+            <p className="mt-5 text-base sm:text-lg text-white/70 max-w-xl mx-auto leading-relaxed">
+              150+ riders, 80+ coaches, one community — building strong bodies, minds, and a lifelong love of mountain biking.
+            </p>
 
-          {/* Stats */}
-          <div className="mt-10 grid grid-cols-4 gap-3 max-w-lg mx-auto">
-            {[
-              { value: '150+', label: 'Riders' },
-              { value: '80+',  label: 'Coaches' },
-              { value: 'NICA', label: 'Sanctioned' },
-              { value: 'K–12', label: 'Grades' },
-            ].map(({ value, label }) => (
-              <div key={label} className="rounded-xl border border-white/20 bg-black/20 backdrop-blur-sm py-3 px-2">
-                <div className="text-xl sm:text-2xl font-extrabold text-white">{value}</div>
-                <div className="text-xs text-white/60 mt-0.5">{label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <Link
-              href="/donate"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-500 transition-colors shadow-lg"
-            >
-              <Heart className="h-4 w-4" />
-              Support the Team
-            </Link>
-            <Link
-              href="/sign-in"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white border border-white/30 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm"
-            >
-              Team Portal Login
-              <ChevronRight className="h-4 w-4" />
-            </Link>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <Link
+                href="/donate"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-500 transition-colors shadow-lg"
+              >
+                <Heart className="h-4 w-4" />
+                Support the Team
+              </Link>
+              <Link
+                href="/sign-in"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-semibold text-white border border-white/30 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm"
+              >
+                Team Portal Login
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40">
-          <span className="text-xs tracking-widest uppercase">Scroll</span>
-          <div className="h-8 w-px bg-white/30 animate-bounce" />
+        {/* Stats bar pinned to bottom */}
+        <div className="relative z-10 grid grid-cols-4 divide-x divide-white/10 border-t border-white/10 bg-black/30 backdrop-blur-sm">
+          {[
+            { value: '150+', label: 'Student Athletes' },
+            { value: '80+',  label: 'Volunteer Coaches' },
+            { value: 'NICA', label: 'Sanctioned League' },
+            { value: 'K–12', label: 'All Grades Welcome' },
+          ].map(({ value, label }) => (
+            <div key={label} className="py-4 px-3 text-center">
+              <div className="text-xl sm:text-2xl font-extrabold text-white">{value}</div>
+              <div className="text-xs text-white/50 mt-0.5">{label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -143,48 +131,95 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* What is NICA */}
-      <section className="py-24 px-6 bg-gray-50">
-        <div className="mx-auto max-w-4xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <ScrollReveal direction="left">
-              <div>
-                <span className="inline-block px-3 py-1 text-xs font-semibold text-brand-600 bg-brand-50 rounded-full uppercase tracking-wider mb-4">
-                  About NICA
-                </span>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">What is NICA?</h2>
-                <p className="text-gray-500 leading-relaxed mb-4">
-                  The National Interscholastic Cycling Association (NICA) is a nonprofit that develops youth character through mountain bike programs for students in grades 6–12.
+      {/* NICA + NorCal */}
+      <section className="py-24 px-6 bg-white">
+        <div className="mx-auto max-w-5xl space-y-16">
+
+          {/* NICA */}
+          <ScrollReveal direction="up">
+            <div className="rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-r from-brand-600 to-brand-800 px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-brand-200 uppercase tracking-wider mb-1">Founded 2009</p>
+                  <h2 className="text-2xl font-extrabold text-white">What is NICA?</h2>
+                  <p className="text-brand-200 text-sm mt-1">National Interscholastic Cycling Association</p>
+                </div>
+                <a href="https://www.nationalmtb.org" target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white text-xs font-semibold hover:bg-white/20 transition-colors">
+                  nationalmtb.org →
+                </a>
+              </div>
+              <div className="p-8">
+                <p className="text-gray-500 leading-relaxed mb-8 max-w-2xl">
+                  NICA is a nonprofit that builds strong minds, bodies, and character in students grades 6–12 through the sport of mountain biking. Teams compete across sanctioned leagues in 30 states, guided by coaches who volunteer their time to grow the next generation of riders.
                 </p>
-                <p className="text-gray-500 leading-relaxed mb-6">
-                  With thousands of teams across the country, NICA is the fastest-growing youth sport in America — every race, every practice, every trail ride is about growing confident, resilient young people.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  {['6th–12th Grade', 'All Skill Levels', 'Co-ed Teams', 'Season Racing'].map(tag => (
-                    <span key={tag} className="px-3 py-1 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">
-                      {tag}
-                    </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    { num: '24,500+', label: 'Student Athletes', desc: 'Across all 32 NICA leagues nationwide' },
+                    { num: '14,500+', label: 'Volunteer Coaches', desc: 'Trained, certified, and passionate about youth cycling' },
+                    { num: '32',      label: 'Leagues',           desc: 'Spanning 30 states across the U.S.' },
+                    { num: '2009',    label: 'Founded',           desc: 'Over 15 years developing youth mountain biking' },
+                  ].map(({ num, label, desc }) => (
+                    <div key={label} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                      <div className="text-2xl sm:text-3xl font-extrabold text-brand-600 mb-1">{num}</div>
+                      <div className="text-sm font-semibold text-gray-800 mb-1">{label}</div>
+                      <div className="text-xs text-gray-400 leading-snug">{desc}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {['6th–12th Grade', 'All Skill Levels', 'Co-ed Teams', 'Season Racing', 'Nonprofit', 'Character Development'].map(tag => (
+                    <span key={tag} className="px-3 py-1 text-xs font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">{tag}</span>
                   ))}
                 </div>
               </div>
-            </ScrollReveal>
+            </div>
+          </ScrollReveal>
 
-            <ScrollReveal direction="right" delay={100}>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { num: '150+', desc: 'Student Athletes' },
-                  { num: '80+',  desc: 'Volunteer coaches' },
-                  { num: '3',    desc: 'Seasons of racing' },
-                  { num: '#1',   desc: 'Reason to ride: fun' },
-                ].map(({ num, desc }) => (
-                  <div key={desc} className="flex flex-col justify-center p-6 rounded-2xl bg-white border border-gray-100 shadow-sm">
-                    <div className="text-3xl font-extrabold text-brand-600 mb-1">{num}</div>
-                    <div className="text-sm text-gray-500">{desc}</div>
+          {/* NorCal */}
+          <ScrollReveal direction="up" delay={100}>
+            <div className="rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://norcal.nationalmtb.org/hubfs/Brand-Assets/NICA-Leagues/NorCal/NORCAL-2025-lockup.png"
+                    alt="NorCal NICA League"
+                    className="h-12 object-contain"
+                  />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Our Home League</p>
+                    <h2 className="text-2xl font-extrabold text-white">NorCal League</h2>
+                    <p className="text-gray-400 text-sm mt-1">Northern California Interscholastic Cycling League</p>
                   </div>
-                ))}
+                </div>
+                <a href="https://norcal.nationalmtb.org" target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white text-xs font-semibold hover:bg-white/20 transition-colors">
+                  norcalmtb.org →
+                </a>
               </div>
-            </ScrollReveal>
-          </div>
+              <div className="p-8">
+                <p className="text-gray-500 leading-relaxed mb-8 max-w-2xl">
+                  The NorCal League is one of the largest and most competitive NICA leagues in the country. Annadel Composite races as part of NorCal, competing against teams from across Northern California in a full season of trail events and races.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    { num: '50+',  label: 'Teams',          desc: 'Competing across Northern California' },
+                    { num: '4–5',  label: 'Races / Season', desc: 'Full-day events at premier trail venues' },
+                    { num: '#1',   label: 'Largest League', desc: 'One of the biggest NICA leagues in the nation' },
+                    { num: 'Fall', label: 'Race Season',    desc: 'September through November each year' },
+                  ].map(({ num, label, desc }) => (
+                    <div key={label} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                      <div className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-1">{num}</div>
+                      <div className="text-sm font-semibold text-gray-800 mb-1">{label}</div>
+                      <div className="text-xs text-gray-400 leading-snug">{desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+
         </div>
       </section>
 
