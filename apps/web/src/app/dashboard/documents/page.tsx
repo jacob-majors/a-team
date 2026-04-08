@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { FileText, Download, ExternalLink, Plus, X, Upload, Search, Trash2, Link2 } from 'lucide-react'
+import { FileText, Download, ExternalLink, Plus, X, Upload, Search, Trash2, Link2, Loader2 } from 'lucide-react'
 import { useRole } from '@/components/layout/role-switcher'
 import { createClient } from '@/lib/supabase/client'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { cn } from '@a-team/utils'
 
 interface Doc {
@@ -47,6 +48,8 @@ export default function DocumentsPage() {
   const [catFilter, setCatFilter] = useState('All')
   const [showAdd, setShowAdd] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '', description: '', url: '', category: 'Resources', type: 'link' as 'file' | 'link',
   })
@@ -106,19 +109,28 @@ export default function DocumentsPage() {
     setShowAdd(false)
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    // Without storage, we save name + a note — file upload requires storage setup
-    setForm({
-      name: file.name.replace(/\.[^.]+$/, ''),
-      description: `Uploaded file: ${file.name}`,
-      url: '',
-      category: 'Resources',
-      type: 'file',
-    })
-    setShowAdd(true)
     if (fileRef.current) fileRef.current.value = ''
+
+    setUploadingFile(true)
+    setUploadError(null)
+    try {
+      const url = await uploadToCloudinary(file, 'documents')
+      setForm({
+        name: file.name.replace(/\.[^.]+$/, ''),
+        description: '',
+        url,
+        category: 'Resources',
+        type: 'file',
+      })
+      setShowAdd(true)
+    } catch (err: any) {
+      setUploadError(err.message ?? 'Upload failed')
+    } finally {
+      setUploadingFile(false)
+    }
   }
 
   async function deleteDoc(id: string) {
@@ -146,10 +158,13 @@ export default function DocumentsPage() {
         </div>
         {canManage && (
           <div className="flex gap-2">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-3 py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-[rgb(var(--bg-secondary))]">
-              <Upload className="h-4 w-4" />
-              <span className="hidden sm:inline">Upload File</span>
-              <input ref={fileRef} type="file" className="hidden" onChange={handleFileUpload} />
+            <label className={cn(
+              'inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-3 py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-[rgb(var(--bg-secondary))]',
+              uploadingFile && 'opacity-60 pointer-events-none'
+            )}>
+              {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              <span className="hidden sm:inline">{uploadingFile ? 'Uploading…' : 'Upload File'}</span>
+              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp" className="hidden" onChange={handleFileUpload} />
             </label>
             <button
               onClick={() => setShowAdd(true)}
@@ -162,6 +177,14 @@ export default function DocumentsPage() {
           </div>
         )}
       </div>
+
+      {/* Upload error */}
+      {uploadError && (
+        <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800/50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <span>{uploadError}</span>
+          <button onClick={() => setUploadError(null)}><X className="h-4 w-4" /></button>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">

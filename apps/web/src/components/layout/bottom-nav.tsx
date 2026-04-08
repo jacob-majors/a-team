@@ -2,15 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Users, MessageSquare, LayoutDashboard, MoreHorizontal } from 'lucide-react'
+import { CalendarDays, Users, MessageSquare, Newspaper, MoreHorizontal } from 'lucide-react'
 import { cn } from '@a-team/utils'
 
 const navItems = [
-  { href: '/dashboard/home', label: 'Home',     icon: LayoutDashboard, exact: true },
-  { href: '/dashboard',      label: 'Calendar', icon: CalendarDays,    exact: true },
-  { href: '/dashboard/roster', label: 'Roster', icon: Users },
-  { href: '/dashboard/chat',   label: 'Chat',   icon: MessageSquare },
-  { href: '/dashboard/more',   label: 'More',   icon: MoreHorizontal },
+  { href: '/dashboard/home',  label: 'Home',     icon: CalendarDays,  exact: true },
+  { href: '/dashboard/posts', label: 'Feed',     icon: Newspaper },
+  { href: '/dashboard/roster', label: 'Roster',  icon: Users },
+  { href: '/dashboard/chat',   label: 'Chat',    icon: MessageSquare },
+  { href: '/dashboard/more',   label: 'More',    icon: MoreHorizontal },
 ]
 
 export function BottomNav() {

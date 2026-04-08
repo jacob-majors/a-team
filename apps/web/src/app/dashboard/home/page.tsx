@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CalendarDays, Users, Megaphone, MessageSquare, ChevronRight } from 'lucide-react'
+import { CalendarDays, Users, Megaphone, MessageSquare, ChevronRight, Heart, Newspaper } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface UpcomingEvent {
@@ -11,6 +11,15 @@ interface UpcomingEvent {
   type: string
   start_at: string
   location: string | null
+}
+
+interface RecentPost {
+  id: string
+  content: string
+  image_url: string | null
+  created_at: string
+  author_name: string
+  like_count: number
 }
 
 function formatTime(t: string) {
@@ -26,10 +35,21 @@ const TYPE_COLORS: Record<string, string> = {
   meeting:  'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-muted))]',
 }
 
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
 export default function DashboardHomePage() {
   const supabase = createClient()
   const [firstName, setFirstName] = useState('')
   const [events, setEvents] = useState<UpcomingEvent[]>([])
+  const [recentPosts, setRecentPosts] = useState<RecentPost[]>([])
 
   useEffect(() => {
     const devBypass = document.cookie.includes('dev_bypass=1')
@@ -53,6 +73,27 @@ export default function DashboardHomePage() {
       .order('start_at')
       .limit(5)
       .then(({ data }) => { if (data) setEvents(data) })
+
+    // Recent posts
+    supabase.from('posts')
+      .select('id, content, image_url, created_at, user_id, post_likes(id)')
+      .eq('deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(3)
+      .then(async ({ data: posts }) => {
+        if (!posts?.length) return
+        const userIds = [...new Set(posts.map(p => p.user_id))]
+        const { data: profiles } = await supabase.from('users').select('id, name').in('id', userIds)
+        const pm = Object.fromEntries((profiles ?? []).map(p => [p.id, p.name]))
+        setRecentPosts(posts.map(p => ({
+          id: p.id,
+          content: p.content,
+          image_url: p.image_url,
+          created_at: p.created_at,
+          author_name: pm[p.user_id] ?? 'Team Member',
+          like_count: p.post_likes?.length ?? 0,
+        })))
+      })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -127,6 +168,45 @@ export default function DashboardHomePage() {
           </div>
         )}
       </div>
+
+      {/* Recent posts */}
+      {recentPosts.length > 0 && (
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[rgb(var(--text))]">Recent Posts</h2>
+            <Link href="/dashboard/posts" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
+              See all <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {recentPosts.map(post => (
+              <Link key={post.id} href="/dashboard/posts"
+                className="flex gap-3 items-start rounded-xl bg-[rgb(var(--surface))] border border-[rgb(var(--border))] p-3 hover:border-brand-300 transition">
+                {post.image_url && (
+                  <img src={post.image_url} alt="" className="h-14 w-14 rounded-lg object-cover shrink-0" />
+                )}
+                {!post.image_url && (
+                  <div className="h-14 w-14 rounded-lg bg-brand-50 dark:bg-brand-950/40 flex items-center justify-center shrink-0">
+                    <Newspaper className="h-6 w-6 text-brand-400" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-brand-600 dark:text-brand-400">{post.author_name}</p>
+                  <p className="text-sm text-[rgb(var(--text))] line-clamp-2 mt-0.5">{post.content || 'Shared a photo'}</p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-[rgb(var(--text-muted))]">{timeAgo(post.created_at)}</span>
+                    {post.like_count > 0 && (
+                      <span className="flex items-center gap-0.5 text-xs text-[rgb(var(--text-muted))]">
+                        <Heart className="h-3 w-3" /> {post.like_count}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
