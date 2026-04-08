@@ -3,42 +3,16 @@ import Link from 'next/link'
 import { Users, Award, MapPin, Mountain, Heart, ChevronRight } from 'lucide-react'
 import { ScrollReveal } from '@/components/landing/scroll-reveal'
 import { SponsorsMarquee } from '@/components/landing/sponsors-marquee'
+import { LandingNav } from '@/components/landing/nav'
 import { sponsors } from './sponsors/data'
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/schools" className="hidden md:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">
-            Schools
-          </Link>
-          <Link href="/sponsors" className="hidden md:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">
-            Sponsors
-          </Link>
-          <Link
-            href="/donate"
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand-600 border border-brand-600 rounded-lg hover:bg-brand-50 transition-colors"
-          >
-            <Heart className="h-4 w-4" />
-            Donate
-          </Link>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
-          >
-            Team Portal
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-400 via-brand-600 to-brand-900" />
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-brand-300/30 blur-3xl" />
@@ -54,6 +28,7 @@ export default function LandingPage() {
               width={200}
               height={68}
               className="object-contain brightness-0 invert"
+              priority
             />
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4">
@@ -106,7 +81,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* About NICA section */}
+      {/* About Us */}
       <section className="py-24 px-6 bg-white">
         <div className="mx-auto max-w-4xl">
           <ScrollReveal direction="up">
@@ -114,41 +89,19 @@ export default function LandingPage() {
               <span className="inline-block px-3 py-1 text-xs font-semibold text-brand-600 bg-brand-50 rounded-full uppercase tracking-wider mb-4">
                 About Us
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                More Than a Bike Team
-              </h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">More Than a Bike Team</h2>
               <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-                NICA teams develop the whole athlete through mountain biking — not just fitness, but resilience, teamwork, and lifelong love of the outdoors.
+                NICA teams develop the whole athlete — not just fitness, but resilience, teamwork, and lifelong love of the outdoors.
               </p>
             </div>
           </ScrollReveal>
 
           <div className="grid sm:grid-cols-2 gap-8">
             {[
-              {
-                icon: <Mountain className="h-6 w-6" />,
-                title: 'Trail-Ready Athletes',
-                body: 'Our riders train on real trails, building technical skills, strength, and confidence that carry into every aspect of their lives.',
-                delay: 0,
-              },
-              {
-                icon: <Users className="h-6 w-6" />,
-                title: '80+ Dedicated Coaches',
-                body: 'Our volunteer coaching staff is one of the largest in NICA. Every rider gets personal attention, mentorship, and a safe environment to grow.',
-                delay: 80,
-              },
-              {
-                icon: <Award className="h-6 w-6" />,
-                title: 'NICA Sanctioned',
-                body: 'We compete in the official National Interscholastic Cycling Association league, following guidelines that prioritize safety, inclusivity, and fun.',
-                delay: 160,
-              },
-              {
-                icon: <MapPin className="h-6 w-6" />,
-                title: 'Sonoma County Roots',
-                body: "Based in Sonoma County, we're proud to ride the trails and represent the community we love — from Annadel State Park and beyond.",
-                delay: 240,
-              },
+              { icon: <Mountain className="h-6 w-6" />, title: 'Trail-Ready Athletes', body: 'Our riders train on real trails, building technical skills, strength, and confidence that carry into every aspect of their lives.', delay: 0 },
+              { icon: <Users className="h-6 w-6" />, title: '80+ Dedicated Coaches', body: 'Our volunteer coaching staff is one of the largest in NICA. Every rider gets personal attention, mentorship, and a safe environment to grow.', delay: 80 },
+              { icon: <Award className="h-6 w-6" />, title: 'NICA Sanctioned', body: 'We compete in the official NICA league, following guidelines that prioritize safety, inclusivity, and fun.', delay: 160 },
+              { icon: <MapPin className="h-6 w-6" />, title: 'Sonoma County Roots', body: "Based in Sonoma County, we ride the trails and represent the community we love — from Annadel State Park and beyond.", delay: 240 },
             ].map(({ icon, title, body, delay }) => (
               <ScrollReveal key={title} direction="up" delay={delay}>
                 <div className="flex gap-5 p-6 rounded-2xl border border-gray-100 hover:border-brand-100 hover:bg-brand-50/30 transition-colors group h-full">
@@ -175,14 +128,12 @@ export default function LandingPage() {
                 <span className="inline-block px-3 py-1 text-xs font-semibold text-brand-600 bg-brand-50 rounded-full uppercase tracking-wider mb-4">
                   About NICA
                 </span>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  What is NICA?
-                </h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">What is NICA?</h2>
                 <p className="text-gray-500 leading-relaxed mb-4">
                   The National Interscholastic Cycling Association (NICA) is a nonprofit that develops youth character through mountain bike programs for students in grades 6–12.
                 </p>
                 <p className="text-gray-500 leading-relaxed mb-6">
-                  With thousands of teams across the country, NICA is the fastest-growing youth sport in America. Every race, every practice, every trail ride is about more than competition — it's about growing confident, resilient young people.
+                  With thousands of teams across the country, NICA is the fastest-growing youth sport in America — every race, every practice, every trail ride is about growing confident, resilient young people.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {['6th–12th Grade', 'All Skill Levels', 'Co-ed Teams', 'Season Racing'].map(tag => (
@@ -197,7 +148,7 @@ export default function LandingPage() {
             <ScrollReveal direction="right" delay={100}>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { num: '150+', desc: 'Student Athletes on our team' },
+                  { num: '150+', desc: 'Student Athletes' },
                   { num: '80+',  desc: 'Volunteer coaches' },
                   { num: '3',    desc: 'Seasons of racing' },
                   { num: '#1',   desc: 'Reason to ride: fun' },
@@ -213,7 +164,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Schools section */}
+      {/* Schools */}
       <section className="py-20 px-6 bg-white overflow-hidden">
         <div className="mx-auto max-w-5xl">
           <ScrollReveal direction="up">
@@ -228,14 +179,13 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
 
-          {/* Stats row */}
           <ScrollReveal direction="up" delay={80}>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-10">
               {[
-                { v: '40+', l: 'Schools' },
-                { v: '18',  l: 'Middle Schools' },
-                { v: '22+', l: 'High Schools' },
-                { v: '5',   l: 'Cities' },
+                { v: '40+',  l: 'Schools' },
+                { v: '18',   l: 'Middle Schools' },
+                { v: '22+',  l: 'High Schools' },
+                { v: '5',    l: 'Cities' },
                 { v: 'K–12', l: 'All Grades' },
               ].map(({ v, l }) => (
                 <div key={l} className="text-center p-4 rounded-2xl border border-gray-100 bg-gray-50">
@@ -246,19 +196,17 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
 
-          {/* City badges */}
           <ScrollReveal direction="up" delay={120}>
             <div className="flex flex-wrap gap-2 justify-center mb-10">
               {['Santa Rosa', 'Windsor', 'Rohnert Park', 'Cotati', 'Healdsburg'].map(city => (
                 <span key={city} className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">
-                  <svg className="h-3 w-3 fill-brand-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                   {city}
                 </span>
               ))}
             </div>
           </ScrollReveal>
 
-          {/* Map preview */}
           <ScrollReveal direction="scale" delay={160}>
             <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-lg" style={{ height: '400px' }}>
               <iframe
@@ -270,14 +218,12 @@ export default function LandingPage() {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
-              {/* Click overlay → full page */}
               <a
                 href="/schools"
                 className="absolute inset-0 flex items-end justify-center pb-6 bg-gradient-to-t from-black/30 to-transparent group"
               >
                 <span className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-brand-600/90 backdrop-blur-sm rounded-xl shadow group-hover:bg-brand-600 transition-colors">
-                  View Interactive Map
-                  <ChevronRight className="h-4 w-4" />
+                  View Interactive Map <ChevronRight className="h-4 w-4" />
                 </span>
               </a>
             </div>
@@ -285,17 +231,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Sponsors section */}
-      <section className="py-24 px-6 bg-white overflow-hidden">
+      {/* Sponsors */}
+      <section className="py-24 px-6 bg-gray-50 overflow-hidden">
         <div className="mx-auto max-w-5xl">
           <ScrollReveal direction="up">
             <div className="text-center mb-12">
               <span className="inline-block px-3 py-1 text-xs font-semibold text-brand-600 bg-brand-50 rounded-full uppercase tracking-wider mb-4">
                 Thank You
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                Our Sponsors
-              </h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Our Sponsors</h2>
               <p className="mt-3 text-gray-500 max-w-xl mx-auto">
                 {sponsors.length} amazing organizations support our riders. Hover to pause — click to learn more.
               </p>
@@ -304,9 +248,8 @@ export default function LandingPage() {
 
           <ScrollReveal direction="fade" delay={150}>
             <div className="relative">
-              {/* Fade edges */}
-              <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-              <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+              <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none" />
               <SponsorsMarquee />
             </div>
           </ScrollReveal>
@@ -317,8 +260,7 @@ export default function LandingPage() {
                 href="/sponsors"
                 className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-brand-600 border border-brand-300 rounded-xl hover:bg-brand-50 transition-colors"
               >
-                View All {sponsors.length} Sponsors
-                <ChevronRight className="h-4 w-4" />
+                View All {sponsors.length} Sponsors <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
           </ScrollReveal>
@@ -329,9 +271,7 @@ export default function LandingPage() {
       <ScrollReveal direction="scale">
         <section className="py-24 px-6 bg-gradient-to-br from-brand-600 to-brand-900">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Already on the team?
-            </h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Already on the team?</h2>
             <p className="text-brand-200 text-lg mb-8">
               Access schedules, event RSVPs, team announcements, the roster, and more in the team portal.
             </p>
@@ -339,8 +279,7 @@ export default function LandingPage() {
               href="/sign-in"
               className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold text-brand-700 bg-white rounded-xl hover:bg-brand-50 transition-colors shadow-lg"
             >
-              Sign in to the Portal
-              <ChevronRight className="h-5 w-5" />
+              Sign in to the Portal <ChevronRight className="h-5 w-5" />
             </Link>
           </div>
         </section>
@@ -359,8 +298,7 @@ export default function LandingPage() {
               href="/donate"
               className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 transition-colors shadow-sm"
             >
-              <Heart className="h-4 w-4" />
-              Donate to the Team
+              <Heart className="h-4 w-4" /> Donate to the Team
             </Link>
           </div>
         </section>
