@@ -25,7 +25,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-brand-950/60 via-brand-900/50 to-brand-950/75" />
 
         {/* Main text — pushed toward top-center */}
-        <div className="relative z-10 flex-1 flex items-center justify-center px-6 pb-32">
+        <div className="relative z-10 flex-1 flex items-center justify-center px-6 pt-20 pb-32">
           <div className="text-center max-w-3xl">
             <p className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-300 mb-4">
               Sonoma County · NICA Mountain Biking
