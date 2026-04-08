@@ -14,71 +14,74 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-400 via-brand-600 to-brand-900" />
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-brand-300/30 blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-brand-800/40 blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-brand-500/20 blur-3xl" />
-        </div>
+        {/* Photo background */}
+        <Image
+          src="/hero.jpg"
+          alt="Annadel Composite riders on trail"
+          fill
+          className="object-cover object-center"
+          priority
+          quality={90}
+        />
+        {/* Dark gradient overlay so text is legible */}
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-950/70 via-brand-900/60 to-brand-950/80" />
 
-        <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
-          <div className="mb-8 flex justify-center">
+        <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
+          <div className="mb-6 flex justify-center">
             <Image
               src="/logo.png"
               alt="Annadel Composite"
-              width={200}
-              height={68}
-              className="object-contain brightness-0 invert"
+              width={180}
+              height={60}
+              className="object-contain brightness-0 invert drop-shadow-lg"
               priority
             />
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4">
-            Annadel Composite
-            <span className="block text-brand-200 text-3xl sm:text-4xl md:text-5xl mt-2">
-              Mountain Bike Team
-            </span>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-[1.05] tracking-tight drop-shadow-md">
+            Annadel
+            <span className="block text-brand-300">Composite</span>
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
-            A National Interscholastic Cycling Association (NICA) team from Sonoma County — building strong bodies, minds, and character through the sport of mountain biking.
+          <p className="mt-5 text-base sm:text-lg text-white/75 max-w-xl mx-auto leading-relaxed">
+            A NICA mountain bike team from Sonoma County — 150+ riders, 80+ coaches, one community.
           </p>
 
           {/* Stats */}
-          <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
+          <div className="mt-10 grid grid-cols-4 gap-3 max-w-lg mx-auto">
             {[
-              { value: '150+', label: 'Student Athletes' },
+              { value: '150+', label: 'Riders' },
               { value: '80+',  label: 'Coaches' },
               { value: 'NICA', label: 'Sanctioned' },
               { value: 'K–12', label: 'Grades' },
             ].map(({ value, label }) => (
-              <div key={label} className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm p-4">
-                <div className="text-2xl sm:text-3xl font-extrabold text-white">{value}</div>
-                <div className="text-xs sm:text-sm text-white/70 mt-1">{label}</div>
+              <div key={label} className="rounded-xl border border-white/20 bg-black/20 backdrop-blur-sm py-3 px-2">
+                <div className="text-xl sm:text-2xl font-extrabold text-white">{value}</div>
+                <div className="text-xs text-white/60 mt-0.5">{label}</div>
               </div>
             ))}
           </div>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
               href="/donate"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-brand-700 bg-white rounded-xl hover:bg-brand-50 transition-colors shadow-lg"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-500 transition-colors shadow-lg"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-4 w-4" />
               Support the Team
             </Link>
             <Link
               href="/sign-in"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white border-2 border-white/40 rounded-xl hover:bg-white/10 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white border border-white/30 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm"
             >
               Team Portal Login
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50">
-          <span className="text-xs">Learn more</span>
-          <div className="h-6 w-px bg-white/30 animate-bounce" />
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40">
+          <span className="text-xs tracking-widest uppercase">Scroll</span>
+          <div className="h-8 w-px bg-white/30 animate-bounce" />
         </div>
       </section>
 
