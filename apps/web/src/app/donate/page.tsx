@@ -122,6 +122,9 @@ export default function DonatePage() {
           <Link href="/" className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
             Home
           </Link>
+          <Link href="/sponsors" className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+            Sponsors
+          </Link>
           <Link
             href="/sign-in"
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
@@ -278,6 +281,7 @@ export default function DonatePage() {
           </p>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Home</Link>
+            <Link href="/sponsors" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Sponsors</Link>
             <Link href="/sign-in" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Team Portal</Link>
           </div>
         </div>
