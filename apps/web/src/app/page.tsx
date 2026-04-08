@@ -14,6 +14,9 @@ export default function LandingPage() {
           <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/schools" className="hidden md:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">
+            Schools
+          </Link>
           <Link href="/sponsors" className="hidden md:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">
             Sponsors
           </Link>
@@ -210,6 +213,78 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Schools section */}
+      <section className="py-20 px-6 bg-white overflow-hidden">
+        <div className="mx-auto max-w-5xl">
+          <ScrollReveal direction="up">
+            <div className="text-center mb-10">
+              <span className="inline-block px-3 py-1 text-xs font-semibold text-brand-600 bg-brand-50 rounded-full uppercase tracking-wider mb-4">
+                Our Community
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Schools We Serve</h2>
+              <p className="mt-3 text-gray-500 max-w-xl mx-auto">
+                We draw riders from 40+ schools across the greater Santa Rosa area — all welcome, all skill levels.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          {/* Stats row */}
+          <ScrollReveal direction="up" delay={80}>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-10">
+              {[
+                { v: '40+', l: 'Schools' },
+                { v: '18',  l: 'Middle Schools' },
+                { v: '22+', l: 'High Schools' },
+                { v: '5',   l: 'Cities' },
+                { v: 'K–12', l: 'All Grades' },
+              ].map(({ v, l }) => (
+                <div key={l} className="text-center p-4 rounded-2xl border border-gray-100 bg-gray-50">
+                  <div className="text-2xl font-extrabold text-brand-600">{v}</div>
+                  <div className="text-xs text-gray-500 mt-1">{l}</div>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
+
+          {/* City badges */}
+          <ScrollReveal direction="up" delay={120}>
+            <div className="flex flex-wrap gap-2 justify-center mb-10">
+              {['Santa Rosa', 'Windsor', 'Rohnert Park', 'Cotati', 'Healdsburg'].map(city => (
+                <span key={city} className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full">
+                  <svg className="h-3 w-3 fill-brand-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  {city}
+                </span>
+              ))}
+            </div>
+          </ScrollReveal>
+
+          {/* Map preview */}
+          <ScrollReveal direction="scale" delay={160}>
+            <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-lg" style={{ height: '400px' }}>
+              <iframe
+                src="https://www.google.com/maps/d/embed?mid=1z8R_W2Rp4NTJVkIIr7u9aHcQiq2czhNB&ehbc=2E312F&ll=38.473,-122.762&z=11"
+                title="Schools Map Preview"
+                width="100%"
+                height="100%"
+                style={{ border: 0, pointerEvents: 'none' }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              {/* Click overlay → full page */}
+              <a
+                href="/schools"
+                className="absolute inset-0 flex items-end justify-center pb-6 bg-gradient-to-t from-black/30 to-transparent group"
+              >
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-brand-600/90 backdrop-blur-sm rounded-xl shadow group-hover:bg-brand-600 transition-colors">
+                  View Interactive Map
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              </a>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
       {/* Sponsors section */}
       <section className="py-24 px-6 bg-white overflow-hidden">
         <div className="mx-auto max-w-5xl">
@@ -299,6 +374,7 @@ export default function LandingPage() {
             © {new Date().getFullYear()} Annadel Composite Mountain Bike Team · NICA
           </p>
           <div className="flex items-center gap-4">
+            <Link href="/schools" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Schools</Link>
             <Link href="/sponsors" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Sponsors</Link>
             <Link href="/donate" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Donate</Link>
             <Link href="/sign-in" className="text-sm text-gray-400 hover:text-brand-600 transition-colors">Team Portal</Link>
