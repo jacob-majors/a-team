@@ -121,25 +121,29 @@ const COACHES: Coach[] = [
 
 const ROLE_ORDER = ['Head Coach', 'Jr Devo Head Coach', 'GRiT Head Coach', 'Pathfinder Coordinator', 'Level 3 Head Coach', 'Level 3 Coach', 'Level 2 Coach']
 
+const HEAD_COACHES = COACHES.filter(c =>
+  ['Head Coach', 'Jr Devo Head Coach', 'GRiT Head Coach', 'Pathfinder Coordinator', 'Level 3 Head Coach'].includes(c.role)
+)
+
 function CoachCard({ coach }: { coach: Coach }) {
-  const [expanded, setExpanded] = useState(false)
-  const isLong = coach.bio.length > 200
+  const [open, setOpen] = useState(false)
 
   return (
-    <div className="group flex flex-col bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-      {/* Top color bar */}
+    <div
+      className="group flex flex-col bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+      onClick={() => setOpen(v => !v)}
+    >
       <div className="h-1.5 w-full" style={{ backgroundColor: coach.color }} />
 
-      <div className="p-6 flex flex-col flex-1">
-        {/* Avatar + name */}
-        <div className="flex items-start gap-4 mb-4">
+      <div className="p-6">
+        <div className="flex items-center gap-4">
           <div
             className="flex-shrink-0 h-14 w-14 rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-sm group-hover:scale-105 transition-transform duration-300"
             style={{ backgroundColor: coach.color }}
           >
             {coach.initials}
           </div>
-          <div className="pt-0.5">
+          <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 leading-snug">{coach.name}</h3>
             <span
               className="inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
@@ -148,77 +152,26 @@ function CoachCard({ coach }: { coach: Coach }) {
               {coach.role}
             </span>
           </div>
+          <ChevronDown
+            className="flex-shrink-0 h-4 w-4 text-gray-400 transition-transform duration-300"
+            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          />
         </div>
 
-        {/* Bio */}
-        <div className="flex-1">
-          <p className={`text-sm text-gray-500 leading-relaxed ${!expanded && isLong ? 'line-clamp-4' : ''}`}>
+        {open && (
+          <p className="mt-4 text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
             {coach.bio}
           </p>
-          {isLong && (
-            <button
-              onClick={() => setExpanded(v => !v)}
-              className="mt-2 flex items-center gap-1 text-xs font-semibold transition-colors"
-              style={{ color: coach.color }}
-            >
-              {expanded ? 'Show less' : 'Read more'}
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   )
 }
 
 export function CoachesSection() {
-  const headCoaches = COACHES.filter(c =>
-    ['Head Coach', 'Jr Devo Head Coach', 'GRiT Head Coach', 'Pathfinder Coordinator', 'Level 3 Head Coach'].includes(c.role)
-  )
-  const level3 = COACHES.filter(c => c.role === 'Level 3 Coach')
-  const level2 = COACHES.filter(c => c.role === 'Level 2 Coach')
-
   return (
-    <div className="space-y-12">
-      {/* Head coaches */}
-      <div>
-        <div className="flex items-center gap-4 mb-6">
-          <h3 className="text-base font-bold text-gray-900 whitespace-nowrap">Head Coaches</h3>
-          <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
-          <span className="text-sm text-gray-400">{headCoaches.length} coaches</span>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {headCoaches.map(coach => <CoachCard key={coach.name} coach={coach} />)}
-        </div>
-      </div>
-
-      {/* Level 3 */}
-      {level3.length > 0 && (
-        <div>
-          <div className="flex items-center gap-4 mb-6">
-            <h3 className="text-base font-bold text-gray-900 whitespace-nowrap">Level 3 Coaches</h3>
-            <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
-            <span className="text-sm text-gray-400">{level3.length} coaches</span>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {level3.map(coach => <CoachCard key={coach.name} coach={coach} />)}
-          </div>
-        </div>
-      )}
-
-      {/* Level 2 */}
-      {level2.length > 0 && (
-        <div>
-          <div className="flex items-center gap-4 mb-6">
-            <h3 className="text-base font-bold text-gray-900 whitespace-nowrap">Level 2 Coaches</h3>
-            <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
-            <span className="text-sm text-gray-400">{level2.length} coaches</span>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {level2.map(coach => <CoachCard key={coach.name} coach={coach} />)}
-          </div>
-        </div>
-      )}
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {HEAD_COACHES.map(coach => <CoachCard key={coach.name} coach={coach} />)}
     </div>
   )
 }
