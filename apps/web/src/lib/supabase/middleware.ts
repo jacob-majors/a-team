@@ -26,7 +26,9 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect unauthenticated users away from protected routes
   const { pathname } = request.nextUrl
+  const isPublic = pathname === '/' || pathname.startsWith('/donate')
   const isAuth = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/auth')
+  if (isPublic) return supabaseResponse
   const devBypass = request.cookies.get('dev_bypass')?.value === '1'
   if (!user && !isAuth && !devBypass) {
     const url = request.nextUrl.clone()
