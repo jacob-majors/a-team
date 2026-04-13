@@ -24,8 +24,8 @@ export function LandingNav() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-10 lg:px-16 py-3 transition-colors duration-300 ${
-          scrolled ? 'bg-brand-950/95 backdrop-blur-md' : 'bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3.5 sm:px-8 lg:px-16 transition-colors duration-300 ${
+          scrolled ? 'bg-brand-950/92 backdrop-blur-md' : 'bg-transparent'
         }`}
       >
         <Link href="/" className="flex items-center">
@@ -40,7 +40,7 @@ export function LandingNav() {
         </Link>
 
         {/* Desktop */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden items-center gap-6 md:flex">
           {LINKS.map(({ label, href }) => (
             <Link
               key={label}
@@ -60,7 +60,7 @@ export function LandingNav() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden text-white/80 hover:text-white p-1 transition-colors"
+          className="p-1 text-white/80 transition-colors hover:text-white md:hidden"
           onClick={() => setMenuOpen(v => !v)}
           aria-label="Toggle menu"
         >
@@ -75,7 +75,7 @@ export function LandingNav() {
         }`}
       >
         <button
-          className="absolute top-4 right-6 text-white/60 hover:text-white"
+          className="absolute right-5 top-5 text-white/60 hover:text-white sm:right-8"
           onClick={() => setMenuOpen(false)}
         >
           <X className="h-6 w-6" />
