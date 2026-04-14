@@ -70,12 +70,21 @@ export default function CalendarPage() {
   const [errors, setErrors]     = useState<Record<string, string>>({})
   const [userId, setUserId]     = useState<string | null>(null)
   const [saving, setSaving]     = useState(false)
+  const [myRsvp, setMyRsvp]     = useState<'yes'|'maybe'|'no'|null>(null)
+  const [rsvps, setRsvps]       = useState<{ name: string; status: 'yes'|'maybe'|'no' }[]>([])
+  const [rsvpLoading, setRsvpLoading] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => { if (data.user) setUserId(data.user.id) })
     loadEvents()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!selected) { setMyRsvp(null); setRsvps([]); return }
+    loadRsvps(selected.id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.id])
 
   // Navigate to a specific date/event from URL params (e.g. from dashboard home)
   useEffect(() => {
@@ -132,6 +141,34 @@ export default function CalendarPage() {
         location: form.location, description: form.description }])
       setShowCreate(false); setForm({ ...EMPTY_FORM })
     }
+  }
+
+  async function loadRsvps(eventId: string) {
+    setRsvpLoading(true)
+    const { data } = await supabase
+      .from('rsvps')
+      .select('status, user_id, users(name)')
+      .eq('event_id', eventId)
+    setRsvpLoading(false)
+    if (!data) return
+    const list = data.map((r: any) => ({ name: r.users?.name ?? 'Unknown', status: r.status as 'yes'|'maybe'|'no' }))
+    setRsvps(list)
+    if (userId) {
+      const mine = data.find((r: any) => r.user_id === userId)
+      setMyRsvp(mine ? mine.status : null)
+    }
+  }
+
+  async function handleRsvp(status: 'yes'|'maybe'|'no') {
+    if (!selected || !userId) return
+    setMyRsvp(status)
+    const existing = await supabase.from('rsvps').select('id').eq('event_id', selected.id).eq('user_id', userId).single()
+    if (existing.data) {
+      await supabase.from('rsvps').update({ status }).eq('id', existing.data.id)
+    } else {
+      await supabase.from('rsvps').insert({ id: crypto.randomUUID(), event_id: selected.id, user_id: userId, status })
+    }
+    loadRsvps(selected.id)
   }
 
   async function handleDelete(id: string) {
@@ -235,13 +272,36 @@ export default function CalendarPage() {
                 <p className="mb-3 text-sm font-medium text-[rgb(var(--text))]">Are you going?</p>
                 <div className="flex gap-2">
                   {(['yes','maybe','no'] as const).map(s => (
-                    <button key={s} className={cn('flex-1 rounded-lg border-2 py-2 text-sm font-medium capitalize transition',
-                      s==='yes' && 'border-green-400 bg-green-50 text-green-700', s==='maybe' && 'border-yellow-400 bg-yellow-50 text-yellow-700',
-                      s==='no'  && 'border-red-300 bg-red-50 text-red-600')}>
+                    <button key={s} onClick={() => handleRsvp(s)}
+                      className={cn('flex-1 rounded-lg border-2 py-2 text-sm font-medium capitalize transition',
+                        s==='yes'   && (myRsvp==='yes'   ? 'border-green-500 bg-green-500 text-white'  : 'border-green-400 bg-green-50 text-green-700 hover:bg-green-100'),
+                        s==='maybe' && (myRsvp==='maybe' ? 'border-yellow-500 bg-yellow-500 text-white' : 'border-yellow-400 bg-yellow-50 text-yellow-700 hover:bg-yellow-100'),
+                        s==='no'    && (myRsvp==='no'    ? 'border-red-500 bg-red-500 text-white'       : 'border-red-300 bg-red-50 text-red-600 hover:bg-red-100'))}>
                       {s==='yes' ? '✓ Going' : s==='maybe' ? '? Maybe' : "✕ Can't go"}
                     </button>
                   ))}
                 </div>
+                {rsvpLoading ? (
+                  <div className="mt-3 flex justify-center"><Loader2 className="h-4 w-4 animate-spin text-[rgb(var(--text-muted))]" /></div>
+                ) : rsvps.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {(['yes','maybe','no'] as const).filter(s => rsvps.some(r => r.status === s)).map(s => (
+                      <div key={s}>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[rgb(var(--text-muted))] mb-1">
+                          {s==='yes' ? `Going (${rsvps.filter(r=>r.status==='yes').length})` : s==='maybe' ? `Maybe (${rsvps.filter(r=>r.status==='maybe').length})` : `Can't go (${rsvps.filter(r=>r.status==='no').length})`}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {rsvps.filter(r => r.status === s).map((r, i) => (
+                            <span key={i} className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium',
+                              s==='yes' ? 'bg-green-100 text-green-700' : s==='maybe' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-50 text-red-600')}>
+                              {r.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button onClick={() => handleDelete(selected.id)} className="w-full rounded-lg border border-red-200 py-2 text-sm font-medium text-red-500 hover:bg-red-50">Delete Event</button>
             </div>
