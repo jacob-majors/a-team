@@ -290,7 +290,7 @@ export default function DonatePage() {
       </nav>
 
       {/* Hero + donation tabs */}
-      <section className="pt-20 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900">
+      <section className="pt-28 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900">
         <div className="mx-auto max-w-3xl text-center mb-10">
           <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-white/20 text-white mb-5 mx-auto">
             <Heart className="h-7 w-7" />

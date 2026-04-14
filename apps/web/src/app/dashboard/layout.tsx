@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { RoleProvider, RoleSwitcher } from '@/components/layout/role-switcher'
 import { ShadowProvider } from '@/components/layout/shadow-context'
+import { PageTitle } from '@/components/layout/page-title'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -38,9 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <header className="flex h-14 shrink-0 items-center justify-between border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 sm:px-6">
-            <div className="flex items-center gap-3 md:hidden">
-              {/* mobile logo placeholder */}
-            </div>
+            <PageTitle />
             <div className="flex-1" />
             <RoleSwitcher />
           </header>

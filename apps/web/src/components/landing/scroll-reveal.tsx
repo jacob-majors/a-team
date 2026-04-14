@@ -22,11 +22,17 @@ export function ScrollReveal({
   once = true,
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  // Start visible so SSR/no-JS users always see content; animate in on scroll
+  const [visible, setVisible] = useState(true)
+  const [animated, setAnimated] = useState(false)
 
   useEffect(() => {
     const node = ref.current
     if (!node) return
+
+    // On mount, reset to hidden so the entrance animation can play
+    setVisible(false)
+    setAnimated(true)
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -58,12 +64,12 @@ export function ScrollReveal({
     <div
       ref={ref}
       className={className}
-      style={{
+      style={animated ? {
         opacity: visible ? 1 : 0,
         transform: visible ? (direction === 'scale' ? 'scale(1)' : 'none') : hiddenTransform,
         transition: `opacity 0.65s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.65s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
         willChange: 'opacity, transform',
-      }}
+      } : undefined}
     >
       {children}
     </div>

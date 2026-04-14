@@ -24,17 +24,17 @@ export default function SponsorsPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-20 pb-20 px-6 overflow-hidden">
+      <section className="relative pt-28 pb-20 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900" />
         <div className="absolute inset-0">
           <div className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-brand-400/20 blur-3xl" />
           <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-brand-900/60 blur-3xl" />
         </div>
         <div className="relative z-10 mx-auto max-w-3xl text-center">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
+            Our Sponsors
+          </h1>
           <ScrollReveal direction="up">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
-              Our Sponsors
-            </h1>
             <p className="text-lg text-brand-100/80 max-w-xl mx-auto">
               {sponsors.length} incredible organizations make Annadel Composite possible.
             </p>

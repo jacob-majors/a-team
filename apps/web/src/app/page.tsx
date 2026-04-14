@@ -25,7 +25,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_34%,rgba(15,184,227,0.18),transparent_34%)]" />
 
         <div className="relative z-10 flex flex-1 items-end px-5 pb-8 pt-28 sm:px-8 sm:pb-10 sm:pt-32 lg:px-16 lg:pb-12 lg:pt-36">
-          <div className="max-w-3xl rounded-[2rem] border border-white/12 bg-black/20 px-5 py-6 backdrop-blur-[2px] sm:px-7 sm:py-8 lg:px-10 lg:py-10">
+          <div className="max-w-3xl rounded-[2rem] border border-white/15 bg-black/45 px-5 py-6 backdrop-blur-sm sm:px-7 sm:py-8 lg:px-10 lg:py-10">
             <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-brand-200 sm:text-xs">
               Sonoma County · NICA Mountain Biking
             </p>

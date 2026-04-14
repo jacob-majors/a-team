@@ -35,7 +35,7 @@ export default function SchoolsPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-20 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 overflow-hidden">
+      <section className="relative pt-28 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 overflow-hidden">
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-brand-400/20 blur-3xl" />
         <div className="absolute bottom-0 left-1/4 h-48 w-48 rounded-full bg-brand-900/60 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-4xl">
