@@ -24,35 +24,35 @@ export function LandingNav() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3.5 sm:px-8 lg:px-16 transition-colors duration-300 ${
-          scrolled ? 'bg-brand-950/92 backdrop-blur-md' : 'bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-2 sm:px-8 lg:px-16 transition-all duration-300 ${
+          scrolled ? 'bg-brand-950/95 backdrop-blur-md' : 'bg-brand-950/55 backdrop-blur-sm'
         }`}
       >
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
             alt="Annadel Composite"
-            width={100}
-            height={34}
+            width={78}
+            height={26}
             className="object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
             priority
           />
         </Link>
 
         {/* Desktop */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-5 md:flex">
           {LINKS.map(({ label, href }) => (
             <Link
               key={label}
               href={href}
-              className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
             >
               {label}
             </Link>
           ))}
           <Link
             href="/sign-in"
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-brand-950 bg-white rounded-lg hover:bg-brand-50 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-semibold text-brand-950 bg-white rounded-lg hover:bg-brand-50 transition-colors"
           >
             Team Portal <ChevronRight className="h-3.5 w-3.5" />
           </Link>

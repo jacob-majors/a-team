@@ -8,9 +8,9 @@ export default function SponsorsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/92 backdrop-blur-md border-b border-gray-100">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
+          <Image src="/logo.png" alt="Annadel Composite" width={90} height={30} className="object-contain" />
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/" className="hidden sm:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">Home</Link>
@@ -43,7 +43,7 @@ export default function SponsorsPage() {
       </section>
 
       {/* Sponsor grid */}
-      <section className="py-16 px-6">
+      <section className="py-12 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {sponsors.map((sponsor, idx) => (
@@ -71,11 +71,11 @@ export default function SponsorsPage() {
       </section>
 
       {/* Become a sponsor CTA */}
-      <section className="py-20 px-6 bg-gradient-to-br from-brand-50 to-brand-100 border-t border-brand-200">
+      <section className="py-14 px-6 bg-gray-50 border-t border-gray-200">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Become a Sponsor</h2>
-          <p className="text-gray-500 mb-8 text-lg">
-            Join these amazing organizations in supporting 150+ student athletes.
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">Become a Sponsor</h2>
+          <p className="text-gray-500 mb-6 text-base">
+            Join these organizations in supporting 150+ student athletes.
           </p>
           <Link
             href="/donate"

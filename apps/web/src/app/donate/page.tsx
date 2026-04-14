@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronRight, Heart, Check, X, AlertTriangle, Info } from 'lucide-react'
+import { ChevronRight, Check, X, AlertTriangle, Info } from 'lucide-react'
 import { DonationTabs } from '@/components/landing/donation-tabs'
 
 type Processor = {
@@ -276,9 +276,9 @@ export default function DonatePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/92 backdrop-blur-md border-b border-gray-100">
         <Link href="/" className="flex items-center">
-          <Image src="/logo.png" alt="Annadel Composite" width={110} height={38} className="object-contain" />
+          <Image src="/logo.png" alt="Annadel Composite" width={90} height={30} className="object-contain" />
         </Link>
         <div className="flex items-center gap-3">
           <Link href="/" className="hidden sm:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">Home</Link>
@@ -290,15 +290,12 @@ export default function DonatePage() {
       </nav>
 
       {/* Hero + donation tabs */}
-      <section className="pt-28 pb-14 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900">
+      <section className="pt-28 pb-12 px-6 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900">
         <div className="mx-auto max-w-3xl text-center mb-10">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-white/20 text-white mb-5 mx-auto">
-            <Heart className="h-7 w-7" />
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 leading-tight">
             Support Annadel Composite
           </h1>
-          <p className="text-brand-100/80 text-lg max-w-xl mx-auto">
+          <p className="text-white/80 text-lg max-w-xl mx-auto">
             Your donation funds bikes, gear, race fees, and coaching for 150+ student athletes.
           </p>
         </div>
@@ -319,10 +316,10 @@ export default function DonatePage() {
       </section>
 
       {/* Fee comparison table */}
-      <section className="py-14 px-6 bg-white">
+      <section className="py-10 px-6 bg-white">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900">Fee Comparison</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Fee Comparison</h2>
             <p className="mt-2 text-gray-500 text-sm">What actually reaches the team per donation amount</p>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
@@ -364,10 +361,10 @@ export default function DonatePage() {
       </section>
 
       {/* Processor cards */}
-      <section className="py-8 px-6 bg-gray-50">
+      <section className="py-10 px-6 bg-gray-50">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900">Processor Breakdown</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Processor Breakdown</h2>
             <p className="mt-2 text-gray-500 text-sm">Every major option — pros, cons, and what it costs</p>
           </div>
           <div className="space-y-5">

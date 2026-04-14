@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronRight, Heart, School, MapPin } from 'lucide-react'
+import { ChevronRight, Heart } from 'lucide-react'
 import { SchoolList } from '@/components/schools/school-list'
 
 const MAP_EMBED = 'https://www.google.com/maps/d/embed?mid=1z8R_W2Rp4NTJVkIIr7u9aHcQiq2czhNB&ehbc=2E312F&ll=38.473010782268915,-122.76263195&z=11'
@@ -18,9 +18,9 @@ export default function SchoolsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/92 backdrop-blur-md border-b border-gray-100">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Annadel Composite" width={120} height={40} className="object-contain" />
+          <Image src="/logo.png" alt="Annadel Composite" width={90} height={30} className="object-contain" />
         </Link>
         <div className="flex items-center gap-3">
           <Link href="/" className="hidden sm:inline text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">Home</Link>
@@ -39,16 +39,10 @@ export default function SchoolsPage() {
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-brand-400/20 blur-3xl" />
         <div className="absolute bottom-0 left-1/4 h-48 w-48 rounded-full bg-brand-900/60 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-4xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/20 text-white">
-              <School className="h-5 w-5" />
-            </div>
-            <span className="text-xs font-semibold text-brand-200 uppercase tracking-wider">Our Community</span>
-          </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
             Schools We Serve
           </h1>
-          <p className="text-lg text-brand-100/80 max-w-2xl mb-8">
+          <p className="text-lg text-white/80 max-w-2xl mb-8">
             Annadel Composite draws riders from 40+ schools across the greater Santa Rosa area — middle school and high school students united by two wheels and one community.
           </p>
 
@@ -63,12 +57,9 @@ export default function SchoolsPage() {
           </div>
 
           {/* Cities */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            <span className="text-sm text-white/60 self-center mr-1 flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" /> Cities:
-            </span>
+          <div className="mt-5 flex flex-wrap gap-2">
             {cities.map(c => (
-              <span key={c} className="px-3 py-1 text-xs font-medium text-white bg-white/10 border border-white/20 rounded-full">
+              <span key={c} className="px-3 py-1 text-xs font-medium text-white/90 bg-white/10 border border-white/20 rounded-full">
                 {c}
               </span>
             ))}
